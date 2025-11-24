@@ -1,16 +1,23 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
+from dotenv import load_dotenv
+import os
 
-# Conexão com o BD
-db = create_engine(
-    "mysql+pymysql://root@localhost:3306/emprestimoEscolar",
-    echo=True
-)
+# Lê as variáveis do arquivo .env
+load_dotenv()
 
-# Base do BD
+# Busca em .env a variável chamada DATABASE_URL
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Gerencia a conexão com o BD
+engine = create_engine(DATABASE_URL, echo=True)
+
+# Permite que as classes representem tabelas no BD
 Base = declarative_base()
 
-# TESTE CONEXÃO
+
+
+### TESTE CONEXÃO ###
 
 # try:
 #     with db.connect() as conn:
