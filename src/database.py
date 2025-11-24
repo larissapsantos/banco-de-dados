@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base
 from dotenv import load_dotenv
 import os
@@ -10,17 +10,17 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Gerencia a conexão com o BD
-engine = create_engine(DATABASE_URL, echo=True)
+bd = create_engine(DATABASE_URL, echo=True)
 
 # Permite que as classes representem tabelas no BD
 Base = declarative_base()
 
 
 
-### TESTE CONEXÃO ###
+## TESTE CONEXÃO ###
 
 # try:
-#     with db.connect() as conn:
+#     with bd.connect() as conn:
 #         result = conn.execute(text("SELECT 1"))
 #         print("Conexão funcionando:", result.fetchone())
 # except Exception as e:
