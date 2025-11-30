@@ -1,32 +1,19 @@
-class Emprestimo:
-    def __init__(self, id_emprestimo, quantidade, horario, data, id_escola, id_equipamento, id_plano_aula):
-        self.id_emprestimo = id_emprestimo
-        self.quantidade = quantidade
-        self.horario = horario
-        self.data = data
-        self.id_escola = id_escola
-        self.id_equipamento = id_equipamento
-        self.id_plano_aula = id_plano_aula
+from sqlalchemy import DateTime, create_engine, Column, Integer, Date, Time, ForeignKey
+from sqlalchemy import text
+from src.database import Base
 
-    def to_dict(self):
-        return {
-            "id_emprestimo": self.id_emprestimo,
-            "quantidade": self.quantidade,
-            "horario": self.horario,
-            "data": self.data,
-            "id_escola": self.id_escola,
-            "id_equipamento": self.id_equipamento,
-            "id_plano_aula": self.id_plano_aula
-        }
+class Emprestimo(Base):
+        __tablename__ = "emprestimo"
 
-    @classmethod
-    def from_dict(cls, dicionario):
-        return cls(
-            id_emprestimo = dicionario.get("id_emprestimo"),
-            quantidade = dicionario.get("quantidade"),
-            horario = dicionario.get("horario"),
-            data = dicionario.get("data"),
-            id_escola = dicionario.get("id_escola"),
-            id_equipamento = dicionario.get("id_equipamento"),
-            id_plano_aula = dicionario.get("id_plano_aula")
-        )
+        id = Column("id", Integer, primary_key=True, autoincrement=True)
+        quantidade = Column("quantidade", Integer, nullable=False)
+        data_hora = Column("data_hora", DateTime)
+        id_escola = Column(Integer, ForeignKey("escola.id"), nullable=False)
+        id_equipamento = Column(Integer, ForeignKey("equipamento.id"), nullable=False)
+        id_plano_aula = Column(Integer,ForeignKey("plano_aula.id"), nullable=False)
+
+        def __init__(self, quantidade, id_escola, id_equipamento, id_plano_aula):
+            self.quantidade = quantidade 
+            self.id_escola = id_escola 
+            self.id_equipamento = id_equipamento 
+            self.id_plano_aula = id_plano_aula
