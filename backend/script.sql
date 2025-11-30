@@ -70,6 +70,7 @@ CREATE TABLE plano_aula (
     status VARCHAR(50),
     id_professor INT NOT NULL,
     FOREIGN KEY (id_professor) REFERENCES professor(matricula)
+    FOREIGN KEY (id_coordenador) REFERENCES coordenador(matricula)
 );
 
 CREATE TABLE emprestimo (
