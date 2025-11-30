@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, create_engine, Column, Integer, Date, Time, ForeignKey
+from sqlalchemy import DateTime, create_engine, Column, Integer, ForeignKey
 from sqlalchemy import text
 from src.database import Base
 
@@ -7,7 +7,7 @@ class Emprestimo(Base):
 
         id = Column("id", Integer, primary_key=True, autoincrement=True)
         quantidade = Column("quantidade", Integer, nullable=False)
-        data_hora = Column("data_hora", DateTime)
+        data_hora = Column("data_hora", DateTime, nullable=False)
         id_escola = Column(Integer, ForeignKey("escola.id"), nullable=False)
         id_equipamento = Column(Integer, ForeignKey("equipamento.id"), nullable=False)
         id_plano_aula = Column(Integer,ForeignKey("plano_aula.id"), nullable=False)
