@@ -10,8 +10,19 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
+import src.models
 from src.database import Base
-from src import models
+
+from src.models import equipamento
+from src.models import categoria
+from src.models import fabricante
+from src.models import escola
+from src.models import professor
+from src.models import coordenador
+from src.models import administrador
+from src.models import solicitacao
+from src.models import plano_aula
+from src.models import emprestimo
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
