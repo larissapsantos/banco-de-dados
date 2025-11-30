@@ -56,3 +56,28 @@ async def listar_emprestimos():
 
 # @request.post("/emprestimos/{emprestimo_id}/avaliacao")
 # async def avaliar_emprestimo(emprestimo_id: int, status):
+
+### CRUD - EQUIPAMENTOS ###
+
+@request.get("/equipamentos")
+async def listar_equipamentos():
+    """
+    Essa é a rota para listar todos os equipamentos cadastrados no sistema
+    """
+    return{"mensagem": "Você acessou a lista de equipamentos"}
+
+# @request.get("/equipamentos/{equipamentos_id}")
+# async def obter_emprestimo(equipamentos_id: int):
+#     return{"mensagem": "Você acessou a um único empréstimo"}
+
+# @request.post("/equipamentos")
+# async def criar_emprestimo(dados):
+
+# @request.post("/equipamentos/{equipamentos_id}")
+# async def atualizar_emprestimo(equipamentos_id: int, dados):
+
+# @request.post("/equipamentos/{equipamentos_id}")
+# async def remover_emprestimo(equipamentos_id: int):
+
+# @request.post("/equipamentos/{equipamentos_id}/avaliacao")
+# async def avaliar_emprestimo(equipamentos_id: int, status):
