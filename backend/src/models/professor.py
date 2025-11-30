@@ -1,4 +1,3 @@
-from pymysql import Date
 from sqlalchemy import create_engine, Column, Integer, ForeignKey, String
 from sqlalchemy import text
 from src.database import Base

@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, Column, String, Date, Integer, ForeignKey
 from sqlalchemy import text
-from sqlalchemy_utils.types import ChoiceType
 from src.database import Base
 
 class Equipamento(Base):
