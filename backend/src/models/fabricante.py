@@ -5,7 +5,7 @@ from src.database import Base
 class Fabricante(Base):
     __tablename__ = "fabricante"
 
-    cnpj = Column("cnpj", Integer, primary_key=True)
+    cnpj = Column("cnpj", String(14), primary_key=True)
     nome = Column("nome", String(100))
     bairro = Column("bairro", String(100))
     uf = Column("uf", String(2))

@@ -5,7 +5,7 @@ from src.database import Base
 class Solicitacao(Base):
     __tablename__ = "solicitacao"
 
-    id_administrador = Column("id_servidor", ForeignKey("servidor_adm.matricula"), primary_key=True)
+    id_administrador = Column("id_servidor", ForeignKey("administrador.matricula"), primary_key=True)
     id_emprestimo = Column("id_emprestimo", ForeignKey("emprestimo.id"), primary_key=True)
     id_coordenador = Column("id_coordenador", ForeignKey("coordenador.matricula"), primary_key=True)
     status = Column("status", String(50))

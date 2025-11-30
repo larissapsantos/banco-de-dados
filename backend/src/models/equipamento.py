@@ -13,5 +13,5 @@ class Equipamento(Base):
     condicao = Column("condicao", String(50))
     data_compra = Column("data_compra", Date)
     status = Column("status", String(50))
-    id_fabricante = Column("id_fabricante", ForeignKey("fabricante.cnpj"))
-    id_categoria = Column("id_categoria", ForeignKey("categoria.id"))
+    id_fabricante = Column(String(14), ForeignKey("fabricante.cnpj"))
+    id_categoria = Column(Integer, ForeignKey("categoria.id"))

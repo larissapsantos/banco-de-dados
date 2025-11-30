@@ -3,7 +3,7 @@ from sqlalchemy import text
 from src.database import Base
 
 class Administrador(Base):
-    __tablename__ = "servidor_adm"
+    __tablename__ = "administrador"
 
     matricula = Column("matricula", Integer, primary_key=True)
     nome = Column("nome", String(100))
