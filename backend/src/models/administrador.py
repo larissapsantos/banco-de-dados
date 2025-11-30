@@ -6,7 +6,7 @@ class Administrador(Base):
     __tablename__ = "servidor_adm"
 
     matricula = Column("matricula", Integer, primary_key=True)
-    nome = Column("nome", String)
-    email = Column("email", String)
-    bairro = Column("bairro", String)
-    uf = Column("uf", String)
+    nome = Column("nome", String(100))
+    email = Column("email", String(100))
+    bairro = Column("bairro", String(100))
+    uf = Column("uf", String(2))

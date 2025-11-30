@@ -6,7 +6,7 @@ class Fabricante(Base):
     __tablename__ = "fabricante"
 
     cnpj = Column("cnpj", Integer, primary_key=True)
-    nome = Column("nome", String)
-    bairro = Column("bairro", String)
-    uf = Column("uf", String)
-    telefone = Column("telefone", String)
+    nome = Column("nome", String(100))
+    bairro = Column("bairro", String(100))
+    uf = Column("uf", String(2))
+    telefone = Column("telefone", String(11))
