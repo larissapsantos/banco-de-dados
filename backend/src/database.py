@@ -10,14 +10,20 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 # Permite que as classes representem tabelas no BD
 Base = declarative_base()
-
 ## TESTE CONEXÃO ###
-try:
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT 1"))
-        print("Conexão funcionando:", result.fetchone())
-except Exception as e:
-    print("Erro na conexão:", e)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+def get_db():
+    """Cria uma sessão do banco e garante fechamento após uso."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Criar novas migrações normalmente:
 # alembic revision --autogenerate -m "Minha nova alteração"
