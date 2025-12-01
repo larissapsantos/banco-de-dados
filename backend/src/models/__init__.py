@@ -9,7 +9,6 @@ from .solicitacao import Solicitacao
 from .plano_aula import PlanoAula
 from .emprestimo import Emprestimo
 
-
 __all__ = [
     "Equipamento",
     "Categoria",
