@@ -1,7 +1,7 @@
 from src.models.administrador import Administrador
 from sqlalchemy.orm import Session
 
-class EquipamentoRepos:
+class AdministradorRepo:
     def listar(self, db: Session):
         return db.query(Administrador).all()
     
