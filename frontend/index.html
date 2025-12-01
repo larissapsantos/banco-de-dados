@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>LMC - Laboratório Maker Central</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <style>
+    /* Estilos customizados para o Roxo do Coordenador */
+    .text-purple { color: #6f42c1; }
+    .border-purple { border-color: #6f42c1 !important; }
+    .btn-purple { 
+      background-color: #6f42c1; 
+      color: white; 
+      border: 1px solid #6f42c1;
+    }
+    .btn-purple:hover { 
+      background-color: #5a32a3; 
+      color: white;
+    }
+    
+    .card { height: 100%; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    
+    <header class="text-center mb-5">
+      <h1 class="display-5 fw-bold text-dark">Laboratório Maker Central</h1>
+      <p class="lead text-muted mx-auto" style="max-width: 800px;">
+        Sistema de gerenciamento de empréstimos, kits de robótica e materiais didáticos para a rede pública de ensino.
+      </p>
+    </header>
+
+    <div class="row g-4 justify-content-center">
+      
+      <div class="col-12 col-md-4">
+        <div class="card border-primary shadow-sm">
+          <div class="card-body text-center p-4">
+            <h5 class="card-title text-primary fw-bold mb-3">Professor</h5>
+            <p class="card-text text-muted mb-4">
+              Crie planos de aula e solicite materiais para suas turmas.
+            </p>
+            <a href="login_professor.html" class="btn btn-primary w-100 fw-bold">Entrar como Professor</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="card border-purple shadow-sm">
+          <div class="card-body text-center p-4">
+            <h5 class="card-title text-purple fw-bold mb-3">Coordenador</h5>
+            <p class="card-text text-muted mb-4">
+              Consolide as demandas da sua escola e envie solicitações.
+            </p>
+            <a href="login_coordenador.html" class="btn btn-purple w-100 fw-bold">Entrar como Coordenador</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="card border-success shadow-sm">
+          <div class="card-body text-center p-4">
+            <h5 class="card-title text-success fw-bold mb-3">Administrador</h5>
+            <p class="card-text text-muted mb-4">
+              Analise, aprove e gerencie a logística dos empréstimos.
+            </p>
+            <a href="login_administrador.html" class="btn btn-success w-100 fw-bold">Entrar como Administrador</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="text-center mt-5 text-muted small">
+      <hr>
+      <p>&copy; 2025 Laboratório Maker Central - UnB</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

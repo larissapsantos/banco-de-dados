@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Login — Professor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .login-card { max-width: 420px; margin: 70px auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card shadow-sm login-card">
+      <div class="card-body p-4">
+
+        <h3 class="text-center mb-4 text-primary fw-bold">Login — Professor</h3>
+
+        <div id="alert"></div>
+
+        <form id="formLogin" onsubmit="return false;">
+          
+          <div class="mb-4">
+            <label class="form-label">Matrícula</label>
+            <input id="matricula" type="text" class="form-control" placeholder="Digite sua matrícula" required>
+          </div>
+
+          <button class="btn btn-primary w-100 py-2 fw-bold" id="btnEntrar">Entrar</button>
+          
+          <div class="text-center mt-3">
+            <a href="index.html" class="text-decoration-none text-muted small">Voltar para a tela inicial</a>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API = "http://localhost:8000/autenticacao/autenticar/professor";
+
+  function showAlert(type, msg) {
+    document.getElementById("alert").innerHTML =
+      `<div class="alert alert-${type}">${msg}</div>`;
+  }
+
+  document.getElementById("btnEntrar").addEventListener("click", async () => {
+    const matricula = document.getElementById("matricula").value.trim();
+
+    if (!matricula) {
+      showAlert("warning", "Por favor, informe sua matrícula.");
+      return;
+    }
+
+    try {
+      // Envia apenas a matrícula
+      const url = `${API}?matricula=${encodeURIComponent(matricula)}`;
+      const res = await fetch(url, { method: "POST" });
+
+      if (!res.ok) {
+        showAlert("danger", "Matrícula não encontrada.");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data["Usuário inativo"]) {
+          showAlert("danger", "Acesso negado: Usuário inativo.");
+          return;
+      }
+
+      // Salva sessão
+      sessionStorage.setItem("maker_matricula", matricula);
+      sessionStorage.setItem("maker_perfil", "PROFESSOR");
+
+      showAlert("success", "Login realizado! Redirecionando...");
+      setTimeout(() => {
+        window.location.href = "dashboard_professor.html";
+      }, 1000);
+
+    } catch (err) {
+      showAlert("danger", "Erro de conexão com o servidor.");
+      console.error(err);
+    }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
