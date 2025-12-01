@@ -6,4 +6,4 @@ class FabricanteRepos:
         return db.query(Fabricante).all()
     
     def buscar_por_id(self, db: Session, id: int):
-        return db.query(Fabricante).filter(Fabricante.id == id).first()
+        return db.query(Fabricante).filter(Fabricante.cnpj == id).first()

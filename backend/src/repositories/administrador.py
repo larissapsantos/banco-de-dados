@@ -6,4 +6,4 @@ class EquipamentoRepos:
         return db.query(Administrador).all()
     
     def buscar_por_id(self, db: Session, id: int):
-        return db.query(Administrador).filter(Administrador.id == id).first()
+        return db.query(Administrador).filter(Administrador.matricula == id).first()

@@ -6,4 +6,4 @@ class CoordenadorRepos:
         return db.query(Coordenador).all()
     
     def buscar_por_id(self, db: Session, id: int):
-        return db.query(Coordenador).filter(Coordenador.id == id).first()
+        return db.query(Coordenador).filter(Coordenador.matricula == id).first()

@@ -6,4 +6,4 @@ class ProfessorRepos:
         return db.query(Professor).all()
     
     def buscar_por_id(self, db: Session, id: int):
-        return db.query(Professor).filter(Professor.id == id).first()
+        return db.query(Professor).filter(Professor.matricula == id).first()
