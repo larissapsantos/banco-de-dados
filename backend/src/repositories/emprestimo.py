@@ -1,7 +1,7 @@
 from src.models.emprestimo import Emprestimo
 from sqlalchemy.orm import Session
 
-class EmprestimoRepositorio:
+class EmprestimoRepos:
 
     def criar(self, db: Session, emprestimo: Emprestimo):
         db.add(emprestimo)

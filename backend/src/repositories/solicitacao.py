@@ -1,7 +1,7 @@
 from src.models.solicitacao import Solicitacao
 from sqlalchemy.orm import Session
 
-class SolicitacaoRepositorio:
+class SolicitacaoRepos:
 
     def criar(self, db: Session, solicitacao: Solicitacao):
         db.add(solicitacao)
