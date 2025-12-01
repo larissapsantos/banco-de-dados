@@ -9,8 +9,8 @@ class PlanoAulaRepos:
         db.refresh(planoAula)
         return planoAula
 
-    def listar(self, bd: Session):
-        return bd.query(PlanoAula).all()
+    def listar(self, db: Session):
+        return db.query(PlanoAula).all()
     
     def buscar_por_id(self, db: Session, id: int):
         return db.query(PlanoAula).filter(PlanoAula.id == id).first()
