@@ -17,7 +17,7 @@ async def autenticar():
 @auth.post("/autenticar/administrador")
 async def login_administrador(matricula: int, db: Session = Depends(get_db)):
     """
-    Essa é a rota para a matrícula de Administrador no banco de dados
+    Essa é a rota para o menu inicial de Administrador
     """
     repo = AdministradorRepo()
     result = repo.buscar_por_id(db, matricula)
@@ -36,7 +36,7 @@ async def login_administrador(matricula: int, db: Session = Depends(get_db)):
 @auth.post("/autenticar/coordenador")
 async def login_coordenador(matricula: int, db: Session = Depends(get_db)):
     """
-    Essa é a rota para a matrícula de Coordenador no banco de dados
+    Essa é a rota para o menu inicial de Coordenador
     """
     repo = CoordenadorRepos()
     result = repo.buscar_por_id(db, matricula)
@@ -56,7 +56,7 @@ async def login_coordenador(matricula: int, db: Session = Depends(get_db)):
 @auth.post("/autenticar/professor")
 async def login_professor(matricula: int, db: Session = Depends(get_db)):
     """
-    Essa é a rota para a matrícula de Professor no banco de dados
+    Essa é a rota para o menu inicial de Professor
     """
     repo = ProfessorRepos()
     result = repo.buscar_por_id(db, matricula)

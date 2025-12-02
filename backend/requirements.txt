@@ -26,6 +26,7 @@ typing_extensions==4.12.2
 tzdata==2025.2
 urllib3==2.3.0
 websocket-client==1.8.0
+<<<<<<< HEAD
 wsproto==1.2.0
 
 fastapi
@@ -34,3 +35,6 @@ sqlalchemy
 pymysql
 alembic
 requests
+=======
+wsproto==1.2.0
+>>>>>>> 8cfd16655dde3ff45a6ef34d13e8a05a870dab7a
