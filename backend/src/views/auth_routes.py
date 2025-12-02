@@ -4,7 +4,6 @@ from ..database import get_db
 from ..repositories.administrador import AdministradorRepo
 from ..repositories.coordenador import CoordenadorRepos
 from ..repositories.professor import ProfessorRepos
-from ..repositories.escola import EscolaRepos
 
 auth = APIRouter(prefix="/autenticacao", tags=["auth"])
 
