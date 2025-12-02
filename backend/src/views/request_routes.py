@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 request = APIRouter(prefix="/requisicao", tags=["request"])
 
-# --- MODELOS DE DADOS (Schemas) ---
+### MODELOS DE DADOS (Schemas) ###
 class PlanoAulaSchema(BaseModel):
     titulo: str
     descricao: str
@@ -25,33 +25,36 @@ class ConsolidacaoSchema(BaseModel):
 class AprovarSchema(BaseModel):
     status: str
 
-# --- ROTAS DE LEITURA (GET) ---
+### ROTAS DE LEITURA DE PLANOS DE AULA (GET) ###
 
 @request.get("/planos-de-aula")
 async def listar_planos(db: Session = Depends(get_db)):
-    """Busca todos os planos no banco de dados (Geral)"""
+    """
+    Busca todos os planos de aula no banco de dados
+    """
     repo = PlanoAulaRepos()
     planos = repo.listar(db)
     return planos
 
 @request.get("/planos-de-aula/coordenador/{matricula}")
 async def listar_planos_por_coordenador(matricula: int, db: Session = Depends(get_db)):
-    """Lista planos de aula APENAS da escola deste coordenador."""
+    """
+    Lista os planos de aula somente da escola do coordenador logado
+    """
     repo_coord = CoordenadorRepos()
     coordenador = repo_coord.buscar_por_id(db, matricula)
     
     if not coordenador:
         raise HTTPException(status_code=404, detail="Coordenador não encontrado")
-    
+
     repo_plano = PlanoAulaRepos()
-    # O # type: ignore diz pro VS Code: "Eu sei que isso é um número, confia em mim"
-    planos = repo_plano.listar_por_escola(db, coordenador.id_escola) # type: ignore
+    planos = repo_plano.listar_por_escola(db, coordenador.id_escola)
     return planos
 
 @request.get("/planos-de-aula/administrador/{matricula}")
 async def listar_planos_para_admin(matricula: int, db: Session = Depends(get_db)):
     """
-    Rota Inteligente: Descobre o bairro do Admin e busca planos das escolas de lá.
+    Descobre o bairro do administrador e busca os planos de aula do mesmo bairro da escola do coordenador logado
     """
     repo_admin = AdministradorRepo()
     admin = repo_admin.buscar_por_id(db, matricula)
@@ -60,16 +63,16 @@ async def listar_planos_para_admin(matricula: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="Administrador não encontrado")
     
     repo_plano = PlanoAulaRepos()
-    # Busca apenas planos ENVIADOS que sejam do bairro desse admin
-    # O # type: ignore evita o erro "Column[str] is not assignable to str"
-    planos = repo_plano.listar_pendentes_por_bairro(db, admin.bairro) # type: ignore
+    planos = repo_plano.listar_pendentes_por_bairro(db, admin.bairro)
     return planos
 
-# --- ROTAS DE ESCRITA (POST/PUT/DELETE) ---
+### ROTAS DE ESCRITA DE PLANOS DE AULA (POST/PUT/DELETE) ###
 
 @request.post("/planos-de-aula")
 async def criar_plano(dados: PlanoAulaSchema, db: Session = Depends(get_db)):
-    """Professor cria um novo plano"""
+    """
+    Professor cria um novo plano de aula
+    """
     repo = PlanoAulaRepos()
     novo_plano = PlanoAula(
         titulo=dados.titulo,
@@ -83,10 +86,11 @@ async def criar_plano(dados: PlanoAulaSchema, db: Session = Depends(get_db)):
 
 @request.post("/planos-de-aula/consolidar")
 async def consolidar_planos(dados: ConsolidacaoSchema, db: Session = Depends(get_db)):
-    """Coordenador envia os planos para a administração"""
+    """
+    Coordenador envia os planos de aula para a administração
+    """
     repo = PlanoAulaRepos()
     for id_plano in dados.planos_ids:
-        # Atualiza o status de cada plano selecionado
         plano = repo.editar(db, id_plano, {"status": "ENVIADO"})
         if not plano:
             print(f"Aviso: Plano {id_plano} não encontrado ao consolidar.")
@@ -95,20 +99,20 @@ async def consolidar_planos(dados: ConsolidacaoSchema, db: Session = Depends(get
 
 @request.put("/planos-de-aula/{id}/avaliacao")
 async def avaliar_plano(id: int, dados: AprovarSchema, db: Session = Depends(get_db)):
-    """Administrador aprova ou rejeita o plano"""
+    """
+    Administrador aprova ou rejeita o plano de aula
+    """
     repo = PlanoAulaRepos()
-    
-    # Atualiza o status
     atualizado = repo.editar(db, id, {"status": dados.status})
-    
     if atualizado is None:
         raise HTTPException(status_code=404, detail="Plano não encontrado")
-
     return {"mensagem": f"Plano atualizado para {dados.status}!"}
 
 @request.delete("/planos-de-aula/{id}")
 async def deletar_plano(id: int, db: Session = Depends(get_db)):
-    """Remove um plano pelo ID"""
+    """
+    Remove um plano de aula pelo ID
+    """
     repo = PlanoAulaRepos()
     sucesso = repo.deletar(db, id)
     if not sucesso:
