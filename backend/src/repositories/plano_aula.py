@@ -1,4 +1,6 @@
 from src.models.plano_aula import PlanoAula
+from src.models.professor import Professor
+from src.models.escola import Escola
 from sqlalchemy.orm import Session
 
 class PlanoAulaRepos:
@@ -14,6 +16,26 @@ class PlanoAulaRepos:
     
     def buscar_por_id(self, db: Session, id: int):
         return db.query(PlanoAula).filter(PlanoAula.id == id).first()
+    
+    # MÉTODO ADICIONADO PELA LARISSA:
+
+    def listar_por_escola(self, db: Session, id_escola: int):
+        # Faz um JOIN entre PlanoAula e Professor para filtrar pela escola do professor
+        return db.query(PlanoAula).join(Professor).filter(
+            Professor.id_escola == id_escola
+        ).all()
+    
+    # MÉTODO adicionado pela Larissa: FILTRAGEM POR BAIRRO (p admin)
+
+    def listar_pendentes_por_bairro(self, db: Session, bairro: str):
+        """
+        Busca planos com status 'ENVIADO' que pertençam a escolas
+        do mesmo bairro solicitado.
+        """
+        return db.query(PlanoAula).join(Professor).join(Escola).filter(
+            Escola.bairro == bairro,
+            PlanoAula.status == "ENVIADO" # type: ignore
+        ).all()
     
     def editar(self, db: Session, id: int, novos_dados: dict):
         plano_aula = self.buscar_por_id(db, id)
