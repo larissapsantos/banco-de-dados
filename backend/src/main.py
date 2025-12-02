@@ -27,4 +27,6 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-# Para rodar o código, executar no terminal: uvicorn src.main:app --reload
+# Para rodar o código, executar no terminal: 
+# 1º: source venv/bin/activate
+# 2º: uvicorn src.main:app --reload
