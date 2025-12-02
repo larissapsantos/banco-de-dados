@@ -69,7 +69,8 @@ CREATE TABLE plano_aula (
     descricao VARCHAR(500),
     status VARCHAR(50),
     id_professor INT NOT NULL,
-    FOREIGN KEY (id_professor) REFERENCES professor(matricula)
+    id_coordenador INT NOT NULL,
+    FOREIGN KEY (id_professor) REFERENCES professor(matricula),
     FOREIGN KEY (id_coordenador) REFERENCES coordenador(matricula)
 );
 

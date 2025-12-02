@@ -6,7 +6,7 @@ DATABASE_URL = "mysql+pymysql://root@localhost:3306/projetoBD"
 # Gerencia a conexão com o BD
 engine = create_engine(DATABASE_URL, echo=True)
 
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+SessionLocal = sessionmaker(bind=engine, autocommit=True, autoflush=False)
 
 # Permite que as classes representem tabelas no BD
 Base = declarative_base()

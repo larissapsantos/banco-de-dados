@@ -12,8 +12,8 @@
     <div class="container-fluid px-5">
       <a class="navbar-brand fw-bold" href="#">Coordenação - Maker Central</a>
       <div class="d-flex align-items-center">
-        <span class="text-white me-3">Olá, Coordenador(a)</span>
-        <a href="index.html" class="btn btn-outline-light btn-sm">Sair</a>
+        <span id="msgUsuario" class="text-white me-3">Olá, Coordenador(a)</span>
+        <button id="btnSair" class="btn btn-outline-light btn-sm">Sair</button>
       </div>
     </div>
   </nav>
@@ -21,40 +21,36 @@
   <div class="container mt-5">
     
     <div class="row mb-5">
-      
       <div class="col-md-4 mb-4">
         <div class="card text-center border-secondary h-100">
           <div class="card-body">
-            <h2 class="display-5 fw-bold" style="color: #6f42c1;">15</h2>
-            <p class="mb-0">Planos Recebidos (Profs)</p>
+            <h2 id="numPlanosRecebidos" class="display-5 fw-bold" style="color: #6f42c1;">0</h2>
+            <p class="mb-0">Planos Novos (Profs)</p>
           </div>
         </div>
       </div>
-
       <div class="col-md-4 mb-4">
         <div class="card text-center border-warning h-100">
           <div class="card-body">
-            <h2 class="text-warning display-5 fw-bold">2</h2>
+            <h2 id="numEmAnalise" class="text-warning display-5 fw-bold">0</h2>
             <p class="mb-0">Minhas Solicitações (Análise)</p>
           </div>
         </div>
       </div>
-
       <div class="col-md-4 mb-4">
         <div class="card text-center border-success h-100">
           <div class="card-body">
-            <h2 class="text-success display-5 fw-bold">1</h2>
+            <h2 id="numAprovadas" class="text-success display-5 fw-bold">0</h2>
             <p class="mb-0">Solicitações Aprovadas</p>
           </div>
         </div>
       </div>
-
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="fw-bold text-secondary">Gestão Escolar</h4>
-        <button class="btn text-white" style="background-color: #6f42c1;">
-            Consolidar Pedidos
+        <button class="btn text-white" style="background-color: #6f42c1;" onclick="consolidarPedidos()">
+            Consolidar Pedidos Selecionados
         </button>
     </div>
 
@@ -79,45 +75,42 @@
         <div class="tab-content" id="myTabContent">
           
           <div class="tab-pane fade show active" id="planos-pane">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th class="ps-4">Professor / Plano</th>
-                    <th>Data Envio</th>
-                    <th>Status</th>
-                    <th class="text-end pe-4">Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="ps-4">
-                        <strong>Prof. João Silva</strong><br>
-                        <small class="text-muted">Física Experimental</small>
-                    </td>
-                    <td>02/12/2025</td>
-                    <td><span class="badge bg-info text-dark">Novo</span></td>
-                    <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-outline-success">Incluir</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="ps-4">
-                        <strong>Prof. Maria Souza</strong><br>
-                        <small class="text-muted">Matemática Maker</small>
-                    </td>
-                    <td>01/12/2025</td>
-                    <td><span class="badge bg-success">Incluído</span></td>
-                    <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-outline-danger">Remover</button>
-                    </td>
-                  </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-4">Professor / Plano</th>
+                        <th>Data Envio</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabelaPlanos">
+                        </tbody>
+                </table>
+                <div id="msgSemPlanos" class="text-center p-4 text-muted" style="display:none;">
+                    Nenhum plano novo recebido.
+                </div>
+            </div>
           </div>
 
           <div class="tab-pane fade" id="solic-pane">
-            <div class="p-5 text-center text-muted">
-                <p>Nenhuma solicitação enviada anteriormente.</p>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID Solicitação</th>
+                            <th>Data Envio</th>
+                            <th>Qtd. Planos</th>
+                            <th>Status Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaHistorico">
+                        </tbody>
+                </table>
+                <div id="msgSemHistorico" class="text-center p-5 text-muted">
+                    Nenhuma solicitação enviada anteriormente.
+                </div>
             </div>
           </div>
 
@@ -127,5 +120,153 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // 1. Verificação de Login
+    const matricula = sessionStorage.getItem("maker_matricula");
+    if (!matricula) {
+        window.location.href = "login_coordenador.html";
+    } else {
+        document.getElementById("msgUsuario").innerText = `Olá, Coord. ${matricula}`;
+    }
+
+    document.getElementById("btnSair").addEventListener("click", () => {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+    });
+
+    // --- DADOS FAKES (Simulando o Banco de Dados) ---
+    
+    // Lista de planos que "chegaram" dos professores
+    let planosRecebidos = [
+        { id: 101, prof: "João Silva", titulo: "Física Experimental", data: "02/12/2025", status: "Novo", selecionado: false },
+        { id: 102, prof: "Maria Souza", titulo: "Matemática Maker", data: "01/12/2025", status: "Novo", selecionado: false },
+        { id: 103, prof: "Carlos Lima", titulo: "Química com Arduino", data: "30/11/2025", status: "Novo", selecionado: false }
+    ];
+
+    // Histórico de solicitações já enviadas
+    let historicoSolicitacoes = [];
+
+    // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
+    function renderizarTelas() {
+        renderizarPlanos();
+        renderizarHistorico();
+        atualizarCards();
+    }
+
+    function renderizarPlanos() {
+        const tbody = document.getElementById("tabelaPlanos");
+        tbody.innerHTML = "";
+
+        if (planosRecebidos.length === 0) {
+            document.getElementById("msgSemPlanos").style.display = "block";
+            return;
+        }
+        document.getElementById("msgSemPlanos").style.display = "none";
+
+        planosRecebidos.forEach((plano, index) => {
+            // Define a cor do badge e do botão baseado se está selecionado ou não
+            const badgeClass = plano.selecionado ? "bg-success" : "bg-info text-dark";
+            const statusTexto = plano.selecionado ? "Incluído" : "Novo";
+            
+            // Botão muda de função: Se selecionado -> Remover. Se não -> Incluir.
+            const btnHtml = plano.selecionado 
+                ? `<button class="btn btn-sm btn-outline-danger" onclick="toggleSelecao(${index})">Remover</button>`
+                : `<button class="btn btn-sm btn-outline-success" onclick="toggleSelecao(${index})">Incluir</button>`;
+
+            const linha = `
+                <tr>
+                    <td class="ps-4">
+                        <strong>Prof. ${plano.prof}</strong><br>
+                        <small class="text-muted">${plano.titulo}</small>
+                    </td>
+                    <td>${plano.data}</td>
+                    <td><span class="badge ${badgeClass}">${statusTexto}</span></td>
+                    <td class="text-end pe-4">${btnHtml}</td>
+                </tr>
+            `;
+            tbody.innerHTML += linha;
+        });
+    }
+
+    function renderizarHistorico() {
+        const tbody = document.getElementById("tabelaHistorico");
+        tbody.innerHTML = "";
+
+        if (historicoSolicitacoes.length === 0) {
+            document.getElementById("msgSemHistorico").style.display = "block";
+            return;
+        }
+        document.getElementById("msgSemHistorico").style.display = "none";
+
+        historicoSolicitacoes.forEach(solic => {
+            const linha = `
+                <tr>
+                    <td class="ps-4 fw-bold">#${solic.id}</td>
+                    <td>${solic.data}</td>
+                    <td>${solic.qtdPlanos} planos</td>
+                    <td><span class="badge bg-warning text-dark">${solic.status}</span></td>
+                </tr>
+            `;
+            tbody.innerHTML += linha;
+        });
+    }
+
+    function atualizarCards() {
+        // Conta quantos planos ainda não foram consolidados
+        document.getElementById("numPlanosRecebidos").innerText = planosRecebidos.length;
+        // Conta solicitações em análise
+        document.getElementById("numEmAnalise").innerText = historicoSolicitacoes.length;
+    }
+
+    // --- LÓGICA DE AÇÃO ---
+
+    // Função chamada ao clicar em Incluir/Remover
+    function toggleSelecao(index) {
+        planosRecebidos[index].selecionado = !planosRecebidos[index].selecionado;
+        renderizarTelas(); // Redesenha para mostrar a mudança de cor
+    }
+
+    // Função chamada ao clicar no botão Roxo "Consolidar"
+    function consolidarPedidos() {
+        // 1. Filtra apenas os planos que foram marcados como "Incluídos"
+        const planosParaEnviar = planosRecebidos.filter(p => p.selecionado);
+
+        if (planosParaEnviar.length === 0) {
+            alert("Selecione pelo menos um plano clicando em 'Incluir' antes de consolidar.");
+            return;
+        }
+
+        if (!confirm(`Deseja criar uma solicitação com ${planosParaEnviar.length} planos?`)) {
+            return;
+        }
+
+        // 2. Cria uma nova solicitação no histórico
+        const novaSolicitacao = {
+            id: Math.floor(Math.random() * 1000) + 1000, // ID aleatório entre 1000 e 2000
+            data: new Date().toLocaleDateString('pt-BR'),
+            qtdPlanos: planosParaEnviar.length,
+            status: "Em Análise"
+        };
+        historicoSolicitacoes.push(novaSolicitacao);
+
+        // 3. Remove os planos enviados da lista de "Novos" (Simulando que já foram processados)
+        planosRecebidos = planosRecebidos.filter(p => !p.selecionado);
+
+        // 4. Feedback e atualização
+        alert("Solicitação enviada para a Administração com sucesso!");
+        
+        // Troca para a aba de histórico automaticamente para o usuário ver
+        const tabHistorico = new bootstrap.Tab(document.getElementById('solic-tab'));
+        tabHistorico.show();
+
+        renderizarTelas();
+    }
+
+    // Inicia tudo
+    renderizarTelas();
+
+  </script>
 </body>
 </html>
