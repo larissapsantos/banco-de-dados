@@ -1,6 +1,9 @@
 from sqlalchemy import DateTime, create_engine, Column, Integer, ForeignKey
 from sqlalchemy import text
 from src.database import Base
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Optional
 
 class Emprestimo(Base):
         __tablename__ = "emprestimo"
@@ -17,3 +20,17 @@ class Emprestimo(Base):
             self.id_escola = id_escola 
             self.id_equipamento = id_equipamento 
             self.id_plano_aula = id_plano_aula
+
+class EmprestimoSchema(BaseModel):
+    quantidade: int
+    data_hora: datetime = Field(default_factory=datetime.now)
+    id_escola: int
+    id_equipamento: int
+    id_plano_aula: int
+
+class AtualizarEmprestimoSchema(BaseModel):
+    quantidade: Optional[int] = None
+    data_hora: Optional[datetime] = None
+    id_escola: Optional[int] = None
+    id_equipamento: Optional[int] = None
+    id_plano_aula: Optional[int] = None

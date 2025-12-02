@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Column, String, ForeignKey
 from sqlalchemy import text
 from src.database import Base
+from pydantic import BaseModel
 
 class Solicitacao(Base):
     __tablename__ = "solicitacao"
@@ -15,3 +16,15 @@ class Solicitacao(Base):
         self.id_emprestimo = id_emprestimo
         self.id_coordenador = id_coordenador
         self.status = status
+
+class SolicitacaoSchema(BaseModel):
+    id_servidor: int
+    id_emprestimo: int
+    id_coordenador: int
+    status: str
+
+class AtualizarSolicitacaoSchema(BaseModel):
+    status: str
+
+class ConsolidacaoSolicitacaoSchema(BaseModel):
+    solicitacoes_ids: list[dict]
