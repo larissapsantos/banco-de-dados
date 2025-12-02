@@ -25,22 +25,22 @@
         <div class="card text-center border-secondary h-100">
           <div class="card-body">
             <h2 id="numPlanosRecebidos" class="display-5 fw-bold" style="color: #6f42c1;">0</h2>
-            <p class="mb-0">Planos Novos (Profs)</p>
+            <p class="mb-0">Novos Planos (Profs)</p>
           </div>
         </div>
       </div>
       <div class="col-md-4 mb-4">
         <div class="card text-center border-warning h-100">
           <div class="card-body">
-            <h2 id="numEmAnalise" class="text-warning display-5 fw-bold">0</h2>
-            <p class="mb-0">Minhas Solicitações (Análise)</p>
+            <h2 id="numEnviados" class="text-warning display-5 fw-bold">0</h2>
+            <p class="mb-0">Enviados para Admin (Aguardando)</p>
           </div>
         </div>
       </div>
       <div class="col-md-4 mb-4">
         <div class="card text-center border-success h-100">
           <div class="card-body">
-            <h2 id="numAprovadas" class="text-success display-5 fw-bold">0</h2>
+            <h2 id="numAprovados" class="text-success display-5 fw-bold">0</h2>
             <p class="mb-0">Solicitações Aprovadas</p>
           </div>
         </div>
@@ -80,7 +80,7 @@
                     <thead class="table-light">
                       <tr>
                         <th class="ps-4">Professor / Plano</th>
-                        <th>Data Envio</th>
+                        <th>ID</th>
                         <th>Status</th>
                         <th class="text-end pe-4">Ação</th>
                       </tr>
@@ -99,16 +99,14 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4">ID Solicitação</th>
-                            <th>Data Envio</th>
-                            <th>Qtd. Planos</th>
+                            <th class="ps-4">Professor / Plano</th>
                             <th>Status Admin</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaHistorico">
                         </tbody>
                 </table>
-                <div id="msgSemHistorico" class="text-center p-5 text-muted">
+                <div id="msgSemHistorico" class="text-center p-5 text-muted" style="display:none;">
                     Nenhuma solicitação enviada anteriormente.
                 </div>
             </div>
@@ -124,7 +122,9 @@
   <script>
     // 1. Verificação de Login
     const matricula = sessionStorage.getItem("maker_matricula");
-    if (!matricula) {
+    const perfil = sessionStorage.getItem("maker_perfil");
+
+    if (!matricula || perfil !== "COORDENADOR") {
         window.location.href = "login_coordenador.html";
     } else {
         document.getElementById("msgUsuario").innerText = `Olá, Coord. ${matricula}`;
@@ -135,137 +135,148 @@
         window.location.href = "index.html";
     });
 
-    // --- DADOS FAKES (Simulando o Banco de Dados) ---
+    const API_URL = "http://localhost:8000/requisicao";
     
-    // Lista de planos que "chegaram" dos professores
-    let planosRecebidos = [
-        { id: 101, prof: "João Silva", titulo: "Física Experimental", data: "02/12/2025", status: "Novo", selecionado: false },
-        { id: 102, prof: "Maria Souza", titulo: "Matemática Maker", data: "01/12/2025", status: "Novo", selecionado: false },
-        { id: 103, prof: "Carlos Lima", titulo: "Química com Arduino", data: "30/11/2025", status: "Novo", selecionado: false }
-    ];
+    // Variáveis de Estado
+    let planosDaEscola = [];
+    let selecionados = new Set(); // Guarda os IDs dos planos que o coord quer enviar
 
-    // Histórico de solicitações já enviadas
-    let historicoSolicitacoes = [];
+    // --- FUNÇÕES DE LÓGICA ---
 
-    // --- FUNÇÕES DE RENDERIZAÇÃO ---
-
-    function renderizarTelas() {
-        renderizarPlanos();
-        renderizarHistorico();
-        atualizarCards();
-    }
-
-    function renderizarPlanos() {
-        const tbody = document.getElementById("tabelaPlanos");
-        tbody.innerHTML = "";
-
-        if (planosRecebidos.length === 0) {
-            document.getElementById("msgSemPlanos").style.display = "block";
-            return;
-        }
-        document.getElementById("msgSemPlanos").style.display = "none";
-
-        planosRecebidos.forEach((plano, index) => {
-            // Define a cor do badge e do botão baseado se está selecionado ou não
-            const badgeClass = plano.selecionado ? "bg-success" : "bg-info text-dark";
-            const statusTexto = plano.selecionado ? "Incluído" : "Novo";
+    async function carregarDados() {
+        try {
+            // Busca todos os planos da escola
+            const response = await fetch(`${API_URL}/planos-de-aula/coordenador/${matricula}`);
+            if (!response.ok) throw new Error("Erro ao buscar planos");
             
-            // Botão muda de função: Se selecionado -> Remover. Se não -> Incluir.
-            const btnHtml = plano.selecionado 
-                ? `<button class="btn btn-sm btn-outline-danger" onclick="toggleSelecao(${index})">Remover</button>`
-                : `<button class="btn btn-sm btn-outline-success" onclick="toggleSelecao(${index})">Incluir</button>`;
+            planosDaEscola = await response.json();
+            renderizarTudo();
 
-            const linha = `
-                <tr>
-                    <td class="ps-4">
-                        <strong>Prof. ${plano.prof}</strong><br>
-                        <small class="text-muted">${plano.titulo}</small>
-                    </td>
-                    <td>${plano.data}</td>
-                    <td><span class="badge ${badgeClass}">${statusTexto}</span></td>
-                    <td class="text-end pe-4">${btnHtml}</td>
-                </tr>
-            `;
-            tbody.innerHTML += linha;
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro ao conectar com o servidor.");
+        }
+    }
+
+    function renderizarTudo() {
+        const tbodyNovos = document.getElementById("tabelaPlanos");
+        const tbodyHist = document.getElementById("tabelaHistorico");
+        const msgSemPlanos = document.getElementById("msgSemPlanos");
+        const msgSemHist = document.getElementById("msgSemHistorico");
+
+        tbodyNovos.innerHTML = "";
+        tbodyHist.innerHTML = "";
+
+        let countNovos = 0;
+        let countEnviados = 0;
+        let countAprovados = 0;
+
+        planosDaEscola.forEach(plano => {
+            // Separação: O que é NOVO (Em Análise) vs O que já foi ENVIADO/PROCESSADO
+            if (plano.status === "EM ANÁLISE" || plano.status === "REJEITADO") {
+                // Aba 1: Novos
+                countNovos++;
+                const isSelected = selecionados.has(plano.id);
+                const btnClass = isSelected ? "btn-success" : "btn-outline-secondary";
+                const btnText = isSelected ? "Incluído ✔" : "Incluir";
+
+                const linha = `
+                    <tr>
+                        <td class="ps-4">
+                            <strong>Prof. ${plano.id_professor}</strong><br>
+                            <span class="text-dark">${plano.titulo}</span>
+                        </td>
+                        <td>${plano.id}</td>
+                        <td><span class="badge bg-warning text-dark">${plano.status}</span></td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm ${btnClass}" onclick="toggleSelecao(${plano.id})">
+                                ${btnText}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbodyNovos.innerHTML += linha;
+
+            } else {
+                // Aba 2: Histórico (ENVIADO, APROVADO, etc)
+                if (plano.status === "ENVIADO") countEnviados++;
+                if (plano.status === "APROVADO") countAprovados++;
+
+                let badgeColor = "bg-secondary";
+                if (plano.status === "ENVIADO") badgeColor = "bg-info text-dark";
+                if (plano.status === "APROVADO") badgeColor = "bg-success";
+
+                const linhaHist = `
+                    <tr>
+                        <td class="ps-4">
+                            <strong>Prof. ${plano.id_professor}</strong> - ${plano.titulo}
+                        </td>
+                        <td><span class="badge ${badgeColor}">${plano.status}</span></td>
+                    </tr>
+                `;
+                tbodyHist.innerHTML += linhaHist;
+            }
         });
+
+        // Atualiza Cards e Mensagens de Vazio
+        document.getElementById("numPlanosRecebidos").innerText = countNovos;
+        document.getElementById("numEnviados").innerText = countEnviados;
+        document.getElementById("numAprovados").innerText = countAprovados;
+
+        msgSemPlanos.style.display = countNovos === 0 ? "block" : "none";
+        msgSemHist.style.display = (countEnviados + countAprovados) === 0 ? "block" : "none";
     }
 
-    function renderizarHistorico() {
-        const tbody = document.getElementById("tabelaHistorico");
-        tbody.innerHTML = "";
-
-        if (historicoSolicitacoes.length === 0) {
-            document.getElementById("msgSemHistorico").style.display = "block";
-            return;
+    // Marca/Desmarca para envio
+    function toggleSelecao(id) {
+        if (selecionados.has(id)) {
+            selecionados.delete(id);
+        } else {
+            selecionados.add(id);
         }
-        document.getElementById("msgSemHistorico").style.display = "none";
-
-        historicoSolicitacoes.forEach(solic => {
-            const linha = `
-                <tr>
-                    <td class="ps-4 fw-bold">#${solic.id}</td>
-                    <td>${solic.data}</td>
-                    <td>${solic.qtdPlanos} planos</td>
-                    <td><span class="badge bg-warning text-dark">${solic.status}</span></td>
-                </tr>
-            `;
-            tbody.innerHTML += linha;
-        });
+        renderizarTudo(); // Redesenha para mudar a cor do botão
     }
 
-    function atualizarCards() {
-        // Conta quantos planos ainda não foram consolidados
-        document.getElementById("numPlanosRecebidos").innerText = planosRecebidos.length;
-        // Conta solicitações em análise
-        document.getElementById("numEmAnalise").innerText = historicoSolicitacoes.length;
-    }
-
-    // --- LÓGICA DE AÇÃO ---
-
-    // Função chamada ao clicar em Incluir/Remover
-    function toggleSelecao(index) {
-        planosRecebidos[index].selecionado = !planosRecebidos[index].selecionado;
-        renderizarTelas(); // Redesenha para mostrar a mudança de cor
-    }
-
-    // Função chamada ao clicar no botão Roxo "Consolidar"
-    function consolidarPedidos() {
-        // 1. Filtra apenas os planos que foram marcados como "Incluídos"
-        const planosParaEnviar = planosRecebidos.filter(p => p.selecionado);
-
-        if (planosParaEnviar.length === 0) {
-            alert("Selecione pelo menos um plano clicando em 'Incluir' antes de consolidar.");
+    // A Lógica de Envio que faltava!
+    async function consolidarPedidos() {
+        if (selecionados.size === 0) {
+            alert("Selecione pelo menos um plano clicando em 'Incluir'!");
             return;
         }
 
-        if (!confirm(`Deseja criar uma solicitação com ${planosParaEnviar.length} planos?`)) {
-            return;
-        }
+        if (!confirm(`Deseja enviar ${selecionados.size} planos para a Administração?`)) return;
 
-        // 2. Cria uma nova solicitação no histórico
-        const novaSolicitacao = {
-            id: Math.floor(Math.random() * 1000) + 1000, // ID aleatório entre 1000 e 2000
-            data: new Date().toLocaleDateString('pt-BR'),
-            qtdPlanos: planosParaEnviar.length,
-            status: "Em Análise"
+        const payload = {
+            id_coordenador: parseInt(matricula),
+            planos_ids: Array.from(selecionados) // Transforma Set em Lista [1, 5, 8]
         };
-        historicoSolicitacoes.push(novaSolicitacao);
 
-        // 3. Remove os planos enviados da lista de "Novos" (Simulando que já foram processados)
-        planosRecebidos = planosRecebidos.filter(p => !p.selecionado);
+        try {
+            const response = await fetch(`${API_URL}/planos-de-aula/consolidar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-        // 4. Feedback e atualização
-        alert("Solicitação enviada para a Administração com sucesso!");
-        
-        // Troca para a aba de histórico automaticamente para o usuário ver
-        const tabHistorico = new bootstrap.Tab(document.getElementById('solic-tab'));
-        tabHistorico.show();
-
-        renderizarTelas();
+            if (response.ok) {
+                alert("Solicitação enviada com sucesso!");
+                selecionados.clear();
+                carregarDados(); // Recarrega tudo (os planos vão mudar de aba)
+                
+                // Opcional: Mudar o foco para a aba de histórico
+                const tabHist = new bootstrap.Tab(document.getElementById('solic-tab'));
+                tabHist.show();
+            } else {
+                alert("Erro ao enviar solicitação.");
+            }
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro de conexão.");
+        }
     }
 
-    // Inicia tudo
-    renderizarTelas();
+    // Inicia
+    carregarDados();
 
   </script>
 </body>

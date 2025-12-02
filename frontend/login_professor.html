@@ -55,25 +55,32 @@
     }
 
     try {
-      // Envia apenas a matrícula
       const url = `${API}?matricula=${encodeURIComponent(matricula)}`;
       const res = await fetch(url, { method: "POST" });
 
       if (!res.ok) {
-        showAlert("danger", "Matrícula não encontrada.");
+        showAlert("danger", "Erro no servidor (404/500).");
         return;
       }
 
       const data = await res.json();
 
-      if (data["Usuário inativo"]) {
-          showAlert("danger", "Acesso negado: Usuário inativo.");
+      // --- CORREÇÃO DE SEGURANÇA ---
+      // Se a resposta não tiver o objeto "Cadastro", significa que não achou no banco
+      if (!data.Cadastro) {
+          showAlert("danger", "Matrícula não encontrada no registro de Professores.");
           return;
       }
 
-      // Salva sessão
+      // Verifica se está inativo
+      if (data["Usuário inativo"] || data.Cadastro.situacao === "inativo") {
+          showAlert("danger", "Acesso negado: Usuário inativo.");
+          return;
+      }
+      // -----------------------------
+
       sessionStorage.setItem("maker_matricula", matricula);
-      sessionStorage.setItem("maker_perfil", "PROFESSOR");
+      sessionStorage.setItem("maker_perfil", "PROFESSOR"); // Marca o perfil exato
 
       showAlert("success", "Login realizado! Redirecionando...");
       setTimeout(() => {

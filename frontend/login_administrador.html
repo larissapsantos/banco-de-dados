@@ -58,15 +58,19 @@
       const url = `${API}?matricula=${encodeURIComponent(matricula)}`;
       const res = await fetch(url, { method: "POST" });
 
-      if (!res.ok) {
-        showAlert("danger", "Matrícula não encontrada.");
-        return;
-      }
+      if (!res.ok) { showAlert("danger", "Erro no servidor."); return; }
 
       const data = await res.json();
 
+      // --- CORREÇÃO DE SEGURANÇA ---
+      if (!data.Cadastro) {
+          showAlert("danger", "Matrícula não encontrada no registro de Administradores.");
+          return;
+      }
+      // -----------------------------
+
       sessionStorage.setItem("maker_matricula", matricula);
-      sessionStorage.setItem("maker_perfil", "ADMINISTRADOR");
+      sessionStorage.setItem("maker_perfil", "ADMINISTRADOR"); // Marca o perfil
 
       showAlert("success", "Login realizado! Redirecionando...");
       setTimeout(() => {

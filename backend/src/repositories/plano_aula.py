@@ -17,15 +17,12 @@ class PlanoAulaRepos:
     def buscar_por_id(self, db: Session, id: int):
         return db.query(PlanoAula).filter(PlanoAula.id == id).first()
     
-    # MÉTODO ADICIONADO PELA LARISSA:
 
     def listar_por_escola(self, db: Session, id_escola: int):
-        # Faz um JOIN entre PlanoAula e Professor para filtrar pela escola do professor
         return db.query(PlanoAula).join(Professor).filter(
             Professor.id_escola == id_escola
         ).all()
     
-    # MÉTODO adicionado pela Larissa: FILTRAGEM POR BAIRRO (p admin)
 
     def listar_pendentes_por_bairro(self, db: Session, bairro: str):
         """

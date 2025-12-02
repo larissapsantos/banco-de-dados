@@ -70,20 +70,24 @@
       const url = `${API}?matricula=${encodeURIComponent(matricula)}`;
       const res = await fetch(url, { method: "POST" });
 
-      if (!res.ok) {
-        showAlert("danger", "Matrícula não encontrada.");
-        return;
-      }
+      if (!res.ok) { showAlert("danger", "Erro no servidor."); return; }
 
       const data = await res.json();
       
-      if (data["Usuário inativo"]) {
-          showAlert("danger", "Acesso negado: Usuário inativo.");
+      // --- CORREÇÃO DE SEGURANÇA ---
+      if (!data.Cadastro) {
+          showAlert("danger", "Matrícula não encontrada no registro de Coordenadores.");
           return;
       }
 
+      if (data["Usuário inativo"] || data.Cadastro.situacao === "inativo") {
+          showAlert("danger", "Acesso negado: Usuário inativo.");
+          return;
+      }
+      // -----------------------------
+
       sessionStorage.setItem("maker_matricula", matricula);
-      sessionStorage.setItem("maker_perfil", "COORDENADOR");
+      sessionStorage.setItem("maker_perfil", "COORDENADOR"); // Marca o perfil
 
       showAlert("success", "Login realizado! Redirecionando...");
       setTimeout(() => {
