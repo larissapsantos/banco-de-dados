@@ -2,28 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from src.database import get_db
-from src.models.plano_aula import PlanoAula
+from src.models.plano_aula import PlanoAula, PlanoAulaSchema, ConsolidacaoPlanoSchema, AprovarPlanoSchema, AtualizarPlanoAulaSchema
+from src.models.emprestimo import Emprestimo, EmprestimoSchema, AtualizarEmprestimoSchema
+from src.models.solicitacao import Solicitacao, SolicitacaoSchema, ConsolidacaoSolicitacaoSchema, AtualizarSolicitacaoSchema
 from src.repositories.plano_aula import PlanoAulaRepos
+from src.repositories.emprestimo import EmprestimoRepos
+from src.repositories.solicitacao import SolicitacaoRepos
 from src.repositories.coordenador import CoordenadorRepos
 from src.repositories.administrador import AdministradorRepo
-from pydantic import BaseModel
 
 request = APIRouter(prefix="/requisicao", tags=["request"])
 
-### MODELOS DE DADOS (Schemas) ###
-class PlanoAulaSchema(BaseModel):
-    titulo: str
-    descricao: str
-    status: str
-    id_professor: int
-    id_coordenador: int
 
-class ConsolidacaoSchema(BaseModel):
-    id_coordenador: int
-    planos_ids: List[int]
-
-class AprovarSchema(BaseModel):
-    status: str
 
 ### ROTAS DE LEITURA DE PLANOS DE AULA (GET) ###
 
@@ -84,8 +74,26 @@ async def criar_plano(dados: PlanoAulaSchema, db: Session = Depends(get_db)):
     repo.criar(db, novo_plano)
     return {"mensagem": "Plano criado com sucesso!", "id": novo_plano.id}
 
+@request.put("/planos-de-aula/{id}")
+async def atualizar_plano(id: int, dados: AtualizarPlanoAulaSchema, db: Session = Depends(get_db)):
+    """
+    Atualiza campos opcionais de um plano de aula
+    """
+    repo = PlanoAulaRepos()
+
+    existente = repo.buscar_por_id(db, id)
+    if not existente:
+        raise HTTPException(status_code=404, detail="Plano não encontrado")
+
+    atualizado = repo.editar(db, id, dados.dict(exclude_unset=True))
+
+    return {
+        "mensagem": "Plano de aula atualizado com sucesso!",
+        "plano": atualizado
+    }
+
 @request.post("/planos-de-aula/consolidar")
-async def consolidar_planos(dados: ConsolidacaoSchema, db: Session = Depends(get_db)):
+async def consolidar_planos(dados: ConsolidacaoPlanoSchema, db: Session = Depends(get_db)):
     """
     Coordenador envia os planos de aula para a administração
     """
@@ -98,7 +106,7 @@ async def consolidar_planos(dados: ConsolidacaoSchema, db: Session = Depends(get
     return {"mensagem": f"{len(dados.planos_ids)} planos enviados para a administração!"}
 
 @request.put("/planos-de-aula/{id}/avaliacao")
-async def avaliar_plano(id: int, dados: AprovarSchema, db: Session = Depends(get_db)):
+async def avaliar_plano(id: int, dados: AprovarPlanoSchema, db: Session = Depends(get_db)):
     """
     Administrador aprova ou rejeita o plano de aula
     """
@@ -119,15 +127,207 @@ async def deletar_plano(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Plano não encontrado")
     return {"mensagem": "Plano removido com sucesso"}
 
-# --- OUTRAS ROTAS (Placeholders) ---
+
+
+### ROTAS DE LEITURA DE EMPRÉSTIMOS (GET) ###
 
 @request.get("/emprestimos")
-async def listar_emprestimos():
-    return {"mensagem": "Rota de empréstimos ainda não implementada."}
+async def listar_emprestimos(db: Session = Depends(get_db)):
+    """
+    Lista todos os empréstimos cadastrados
+    """
+    repo = EmprestimoRepos()
+    emprestimos = repo.listar(db)
+    return emprestimos
 
-@request.get("/equipamentos")
-async def listar_equipamentos():
-    return {"mensagem": "Rota de equipamentos ainda não implementada."}
+
+@request.get("/emprestimos/{id}")
+async def obter_emprestimo(id: int, db: Session = Depends(get_db)):
+    """
+    Busca um empréstimo pelo ID
+    """
+    repo = EmprestimoRepos()
+    emprestimo = repo.buscar_por_id(db, id)
+
+    if not emprestimo:
+        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+
+    return emprestimo
+
+### ROTAS DE ESCRITA DE EMPRÉSTIMO (POST/PUT/DELETE) ###
+
+@request.post("/emprestimos")
+async def criar_emprestimo(dados: EmprestimoSchema, db: Session = Depends(get_db)):
+    """
+    Cria um empréstimo
+    """
+    repo = EmprestimoRepos()
+
+    novo = Emprestimo(
+        quantidade=dados.quantidade,
+        data_hora=dados.data_hora,
+        id_escola=dados.id_escola,
+        id_equipamento=dados.id_equipamento,
+        id_plano_aula=dados.id_plano_aula
+    )
+
+    repo.criar(db, novo)
+    return {"mensagem": "Empréstimo criado com sucesso!", "id": novo.id}
+
+
+@request.put("/emprestimos/{id}")
+async def atualizar_emprestimo(id: int, dados: AtualizarEmprestimoSchema, db: Session = Depends(get_db)):
+    """
+    Atualiza campos opcionais de um empréstimo
+    """
+    repo = EmprestimoRepos()
+
+    existente = repo.buscar_por_id(db, id)
+    if not existente:
+        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+
+    atualizado = repo.editar(db, id, dados.dict(exclude_unset=True))
+
+    return {
+        "mensagem": "Empréstimo atualizado com sucesso!",
+        "emprestimo": atualizado
+    }
+
+
+@request.delete("/emprestimos/{id}")
+async def deletar_emprestimo(id: int, db: Session = Depends(get_db)):
+    """
+    Remove um empréstimo pelo ID
+    """
+    repo = EmprestimoRepos()
+    removido = repo.deletar(db, id)
+
+    if not removido:
+        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+
+    return {"mensagem": "Empréstimo removido com sucesso"}
+
+@request.get("/solicitacoes")
+async def listar_solicitacoes(db: Session = Depends(get_db)):
+    """
+    Busca todas as solicitações no banco de dados
+    """
+    repo = SolicitacaoRepos()
+    solicitacoes = repo.listar(db)
+    return solicitacoes
+
+
+
+### ROTAS DE LEITURA DE SOLICITAÇÕES (GET) ###
+
+@request.get("/solicitacoes/coordenador/{matricula}")
+async def listar_solicitacoes_por_coordenador(matricula: int, db: Session = Depends(get_db)):
+    """
+    Lista as solicitações associadas à escola do coordenador logado
+    """
+    repo_coord = CoordenadorRepos()
+    coordenador = repo_coord.buscar_por_id(db, matricula)
+    
+    if not coordenador:
+        raise HTTPException(status_code=404, detail="Coordenador não encontrado")
+
+    repo_solicitacao = SolicitacaoRepos()
+    solicitacoes = repo_solicitacao.listar_por_escola(db, coordenador.id_escola)
+    return solicitacoes
+
+@request.get("/solicitacoes/administrador/{matricula}")
+async def listar_solicitacoes_para_admin(matricula: int, db: Session = Depends(get_db)):
+    """
+    Descobre o bairro do administrador e busca as solicitações da mesma região
+    """
+    repo_admin = AdministradorRepo()
+    admin = repo_admin.buscar_por_id(db, matricula)
+    
+    if not admin:
+        raise HTTPException(status_code=404, detail="Administrador não encontrado")
+    
+    repo_solicitacao = SolicitacaoRepos()
+    solicitacoes = repo_solicitacao.listar_pendentes_por_bairro(db, admin.bairro)
+    return solicitacoes
+
+### ROTAS DE ESCRITA DE SOLICITAÇÕES (POST/PUT/DELETE) ###
+
+@request.post("/solicitacoes")
+async def criar_solicitacao(dados: SolicitacaoSchema, db: Session = Depends(get_db)):
+    """
+    Cria uma nova solicitação
+    """
+    repo = SolicitacaoRepos()
+    nova_solicitacao = Solicitacao(
+        id_servidor=dados.id_servidor,
+        id_emprestimo=dados.id_emprestimo,
+        id_coordenador=dados.id_coordenador,
+        status=dados.status
+    )
+    repo.criar(db, nova_solicitacao)
+    return {
+        "mensagem": "Solicitação criada com sucesso!",
+        "ids": {
+            "id_servidor": nova_solicitacao.id_servidor,
+            "id_emprestimo": nova_solicitacao.id_emprestimo,
+            "id_coordenador": nova_solicitacao.id_coordenador
+        }
+    }
+
+@request.post("/solicitacoes/consolidar")
+async def consolidar_solicitacoes(dados: ConsolidacaoSolicitacaoSchema, db: Session = Depends(get_db)):
+    """
+    Coordenador envia as solicitações para a administração
+    """
+    repo = SolicitacaoRepos()
+    for ids in dados.solicitacoes_ids:
+        solicitacao = repo.editar(
+            db,
+            ids["id_servidor"],
+            ids["id_emprestimo"],
+            ids["id_coordenador"],
+            {"status": "ENVIADO"}
+        )
+        if not solicitacao:
+            print(f"Aviso: Solicitação {ids} não encontrada ao consolidar.")
+            
+    return {"mensagem": f"{len(dados.solicitacoes_ids)} solicitações enviadas para a administração!"}
+
+@request.put("/solicitacoes/{id_servidor}/{id_emprestimo}/{id_coordenador}")
+async def atualizar_solicitacao(
+    id_servidor: int,
+    id_emprestimo: int,
+    id_coordenador: int,
+    dados: AtualizarSolicitacaoSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Atualiza o status da solicitação
+    """
+    repo = SolicitacaoRepos()
+    atualizado = repo.editar(
+        db,
+        id_servidor,
+        id_emprestimo,
+        id_coordenador,
+        {"status": dados.status}
+    )
+    if atualizado is None:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada")
+    return {"mensagem": f"Solicitação atualizada para {dados.status}!"}
+
+@request.delete("/solicitacoes/{id_servidor}/{id_emprestimo}/{id_coordenador}")
+async def deletar_solicitacao(id_servidor: int, id_emprestimo: int, id_coordenador: int, db: Session = Depends(get_db)):
+    """
+    Remove uma solicitação pelo ID composto
+    """
+    repo = SolicitacaoRepos()
+    sucesso = repo.deletar(db, id_servidor, id_emprestimo, id_coordenador)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada")
+    return {"mensagem": "Solicitação removida com sucesso"}
+
+
 
 # ///////////////////////////////////////////////////////////////////////////
 # //////////////// CÓDIGO ORIGINAL SEM AJUSTES //////////////////////////////
@@ -313,20 +513,104 @@ async def listar_equipamentos():
 #         })
 #     return dados
 
-# # @request.get("/emprestimos/{emprestimo_id}")
-# # async def obter_emprestimo(emprestimo_id: int):
+# @request.get("/emprestimos/{id}")
+# async def obter_emprestimo(id: int, db: Session = Depends(get_db)):
+#     """
+#     Essa é a rota para obter um empréstimo cadastrado no sistema, identificado pelo id
+#     """
+#     repo = EmprestimoRepos()
+#     result = repo.buscar_por_id(db, id)
+#     if (result is None):
+#         return {"Empréstimo não encontrado"}
+#     dados = {
+#         "id": result.id,
+#         "quantidade": result.quantidade,
+#         "data_hora": result.data_hora,
+#         "id_escola": result.id_escola,
+#         "id_equipamento": result.id_equipamento,
+#         "id_plano_aula": result.id_plano_aula
+#     }
+#     return {"Empréstimo": dados}
 
-# # @request.post("/emprestimos")
-# # async def criar_emprestimo(dados):
+# @request.post("/emprestimos")
+# async def criar_emprestimo(
+#     quantidade: int,
+#     data_hora: str,
+#     id_escola: int,
+#     id_equipamento: int,
+#     id_plano_aula: int,
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Essa é a rota para criar um empréstimo
+#     """
+#     repo = EmprestimoRepos()
+#     novo_emprestimo = Emprestimo(
+#         quantidade=quantidade,
+#         data_hora=data_hora,
+#         id_escola=id_escola,
+#         id_equipamento=id_equipamento,
+#         id_plano_aula=id_plano_aula
+#     )
+#     criado = repo.criar(db, novo_emprestimo)
+#     return {
+#         "mensagem": "Empréstimo criado com sucesso!",
+#         "id": criado.id
+#     }
 
-# # @request.post("/emprestimos/{emprestimo_id}")
-# # async def atualizar_emprestimo(emprestimo_id: int, dados):
+# @request.put("/emprestimos/{id}")
+# async def atualizar_emprestimo(
+#     id: int,
+#     quantidade: int = Body(None),
+#     data_hora: str = Body(None),
+#     id_escola: int = Body(None),
+#     id_equipamento: int = Body(None),
+#     id_plano_aula: int = Body(None),
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Atualiza empréstimo, sendo cada campo é um parâmetro opcional no body
+#     """
+#     repo = EmprestimoRepos()
+#     emprestimo = repo.buscar_por_id(db, id)
+#     if not emprestimo:
+#         return {"erro": "Empréstimo não encontrado"}
+#     dados = {}
+#     if quantidade is not None:
+#         dados["quantidade"] = quantidade
+#     if data_hora is not None:
+#         dados["data_hora"] = data_hora
+#     if id_escola is not None:
+#         dados["id_escola"] = id_escola
+#     if id_equipamento is not None:
+#         dados["id_equipamento"] = id_equipamento
+#     if id_plano_aula is not None:
+#         dados["id_plano_aula"] = id_plano_aula
+#     if not dados:
+#         return {"erro": "Nenhum dado enviado para atualização"}
+#     atualizado = repo.editar(db, id, dados)
+#     return {
+#         "mensagem": "Empréstimo atualizado com sucesso!",
+#         "emprestimo": {
+#             "id": atualizado.id,
+#             "quantidade": atualizado.quantidade,
+#             "data_hora": atualizado.data_hora,
+#             "id_escola": atualizado.id_escola,
+#             "id_equipamento": atualizado.id_equipamento,
+#             "id_plano_aula": atualizado.id_plano_aula
+#         }
+#     }
 
-# # @request.post("/emprestimos/{emprestimo_id}")
-# # async def remover_emprestimo(emprestimo_id: int):
-
-# # @request.post("/emprestimos/{emprestimo_id}/avaliacao")
-# # async def avaliar_emprestimo(emprestimo_id: int, status):
+# @request.delete("/emprestimos/{id}")
+# async def remover_emprestimo(id: int, db: Session = Depends(get_db)):
+#     """
+#     Essa é a rota para deletar um empréstimo cadastrado no sistema, identificado pelo id
+#     """
+#     repo = EmprestimoRepos()
+#     result = repo.deletar(db, id)
+#     if (result is None):
+#         return {"Empréstimo não encontrado"}
+#     return {"Empréstimo deletado com sucesso!"}
 
 
 
@@ -335,37 +619,153 @@ async def listar_equipamentos():
 # @request.get("/solicitacoes")
 # async def listar_solicitacoes(db: Session = Depends(get_db)):
 #     """
-#     Essa é a rota para listar todos os solicitações de aula cadastrados no sistema
+#     Essa é a rota para listar todas as solicitações cadastradas no sistema.
 #     """
-#     repo = PlanoAulaRepos()
+#     repo = SolicitacaoRepos()
 #     result = repo.listar(db)
-#     if (not result):
-#         return {"Não foram encontrados solicitações cadastradas"}
-    
+
+#     if not result:
+#         return {"mensagem": "Não foram encontradas solicitações cadastradas."}
+
 #     dados = []
 #     for solicitacao in result:
 #         dados.append({
 #             "id_administrador": solicitacao.id_administrador,
-#             "id_emprestimo": solicitacao.id_emprestimo,
 #             "id_coordenador": solicitacao.id_coordenador,
+#             "id_emprestimo": solicitacao.id_emprestimo,
 #             "status": solicitacao.status
 #         })
 #     return dados
 
-# # @request.get("/solicitacoes/{solicitacoes_id}")
-# # async def obter_emprestimo(solicitacoes_id: int):
+# @request.get("/solicitacoes/{id_administrador}/{id_coordenador}/{id_emprestimo}")
+# async def obter_solicitacao(id_administrador: int, id_coordenador: int, id_emprestimo: int, db: Session = Depends(get_db)):
+#     """
+#     Busca uma solicitação pela chave primária composta.
+#     """
+#     repo = SolicitacaoRepo()
+#     result = repo.buscar(db, id_administrador, id_coordenador, id_emprestimo)
 
-# # @request.post("/solicitacoes")
-# # async def criar_emprestimo(dados):
+#     if not result:
+#         return {"mensagem": "Solicitação não encontrada."}
 
-# # @request.post("/solicitacoes/{solicitacoes_id}")
-# # async def atualizar_emprestimo(solicitacoes_id: int, dados):
+#     return {
+#         "solicitacao": {
+#             "id_administrador": result.id_administrador,
+#             "id_coordenador": result.id_coordenador,
+#             "id_emprestimo": result.id_emprestimo,
+#             "status": result.status
+#         }
+#     }
 
-# # @request.post("/solicitacoes/{solicitacoes_id}")
-# # async def remover_emprestimo(solicitacoes_id: int):
+# @request.post("/solicitacoes")
+# async def criar_solicitacao(
+#     id_administrador: int,
+#     id_coordenador: int,
+#     id_emprestimo: int,
+#     status: str,
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Cria uma nova solicitação (PK composta impede duplicação)
+#     """
+#     repo = SolicitacaoRepos()
 
-# # @request.post("/solicitacoes/{solicitacoes_id}/avaliacao")
-# # async def avaliar_emprestimo(solicitacoes_id: int, status):
+#     existente = repo.buscar(db, id_administrador, id_coordenador, id_emprestimo)
+#     if existente:
+#         return {"erro": "Solicitação já existe com essa chave composta."}
+
+#     nova = Solicitacao(
+#         id_administrador=id_administrador,
+#         id_coordenador=id_coordenador,
+#         id_emprestimo=id_emprestimo,
+#         status=status
+#     )
+
+#     criado = repo.criar(db, nova)
+#     return {
+#         "mensagem": "Solicitação criada com sucesso!",
+#         "solicitacao": {
+#             "id_administrador": criado.id_administrador,
+#             "id_coordenador": criado.id_coordenador,
+#             "id_emprestimo": criado.id_emprestimo,
+#             "status": criado.status
+#         }
+#     }
+
+# @request.put("/solicitacoes/{id_administrador}/{id_coordenador}/{id_emprestimo}")
+# async def atualizar_solicitacao(
+#     id_administrador: int,
+#     id_coordenador: int,
+#     id_emprestimo: int,
+#     status: str = Body(None),
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Atualiza uma solicitação existente
+#     """
+#     repo = SolicitacaoRepos()
+
+#     solicitacao = repo.buscar(db, id_administrador, id_coordenador, id_emprestimo)
+#     if not solicitacao:
+#         return {"erro": "Solicitação não encontrada."}
+
+#     dados = {}
+#     if status is not None:
+#         dados["status"] = status
+
+#     if not dados:
+#         return {"erro": "Nenhum dado enviado para atualização."}
+
+#     atualizado = repo.editar(db, solicitacao, dados)
+#     return {
+#         "mensagem": "Solicitação atualizada com sucesso!",
+#         "solicitacao": {
+#             "id_administrador": atualizado.id_administrador,
+#             "id_coordenador": atualizado.id_coordenador,
+#             "id_emprestimo": atualizado.id_emprestimo,
+#             "status": atualizado.status
+#         }
+#     }
+
+# @request.delete("/solicitacoes/{id_administrador}/{id_coordenador}/{id_emprestimo}")
+# async def remover_solicitacao(id_administrador: int, id_coordenador: int, id_emprestimo: int, db: Session = Depends(get_db)):
+#     """
+#     Remove uma solicitação pela chave primária composta.
+#     """
+#     repo = SolicitacaoRepos()
+#     solicitacao = repo.buscar(db, id_administrador, id_coordenador, id_emprestimo)
+
+#     if not solicitacao:
+#         return {"mensagem": "Solicitação não encontrada."}
+
+#     repo.deletar(db, solicitacao)
+#     return {"mensagem": "Solicitação deletada com sucesso!"}
+
+# @request.put("/solicitacoes/{id_administrador}/{id_coordenador}/{id_emprestimo}/avaliacao")
+# async def avaliar_solicitacao(
+#     id_administrador: int,
+#     id_coordenador: int,
+#     id_emprestimo: int,
+#     status: str,
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Atualiza o status da solicitação (aprovar/reprovar).
+#     """
+#     repo = SolicitacaoRepos()
+#     solicitacao = repo.buscar(db, id_administrador, id_coordenador, id_emprestimo)
+
+#     if not solicitacao:
+#         return {"erro": "Solicitação não encontrada."}
+
+#     solicitacao.status = status
+#     db.commit()
+#     db.refresh(solicitacao)
+
+#     return {
+#         "mensagem": "Status atualizado!",
+#         "status": solicitacao.status
+#     }
 
 
 
