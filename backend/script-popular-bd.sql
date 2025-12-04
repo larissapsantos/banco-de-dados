@@ -77,7 +77,7 @@ INSERT INTO coordenador (matricula, nome, situacao, id_escola) VALUES
 (57512, 'Júlia Oliveira', 'ativo', 9),
 (52376, 'Leonardo Santos', 'inativo', 10),
 (58591, 'Marcela Almeida', 'ativo', 11),
-(56432, 'Natan Ribeiro', 'inativo', 12),
+(56432, 'Natan Ribeiro', 'ativo', 12),
 (59912, 'Olívia Gomes', 'ativo', 13),
 (53752, 'Paulo Costa', 'ativo', 14),
 (55431, 'Renata Carvalho', 'inativo', 15),
@@ -108,3 +108,61 @@ INSERT INTO administrador (matricula, nome, email, bairro, uf) VALUES
 (90890, 'Henrique Santos', 'henriquesantos@educacao.gov.br', 'Gama', 'DF'),
 (90912, 'Isabela Ferreira', 'isabelaferreira@educacao.gov.br', 'Riacho Fundo', 'DF'),
 (91023, 'João da Cunha', 'joaodacunha@educacao.gov.br', 'Santa Maria', 'DF');
+
+INSERT INTO categoria (nome, descricao) VALUES 
+('Robótica', 'Kits, placas, sensores e componentes eletrônicos'),
+('Impressão 3D', 'Impressoras e filamentos'),
+('Ferramentas', 'Ferramentas manuais, elétricas e equipamentos de bancada');
+
+INSERT INTO fabricante (cnpj, nome, bairro, uf, telefone) VALUES 
+('11111111000111', 'RoboCore', 'São Paulo', 'SP', '1199999999'),
+('22222222000122', 'Creality', 'Shenzhen', 'CN', '0000000000'),
+('33333333000133', 'Arduino Org', 'Monza', 'IT', '0000000000'),
+('44444444000144', 'Bosch', 'Campinas', 'SP', '1933333333'),
+('55555555000155', 'Stanley', 'São Paulo', 'SP', '1144444444'),
+('66666666000166', 'Prusa Research', 'Praga', 'CZ', '0000000000'),
+('77777777000177', 'Raspberry Pi Fdn', 'Cambridge', 'UK', '0000000000');
+
+INSERT INTO equipamento (nome, descricao, localizacao, condicao, status, id_fabricante, id_categoria, data_compra) VALUES 
+('Kit Arduino Uno', 'Kit iniciante com placa R3 e sensores básicos', 'Armário A', 'Novo', 'Disponível', '11111111000111', 1, '2024-01-10'),
+('Impressora Ender 3', 'Impressora 3D FDM de entrada', 'Bancada 2', 'Bom', 'Disponível', '22222222000122', 2, '2023-11-15'),
+('Kit LEGO Mindstorms', 'Robótica educacional EV3', 'Armário B', 'Usado', 'Disponível', '11111111000111', 1, '2022-05-20'),
+('Notebook Dell', 'Inspiron 15 para programação', 'Carrinho 1', 'Bom', 'Disponível', '11111111000111', 1, '2023-02-10');
+
+-- ROBÓTICA
+INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
+('Placa Raspberry Pi 4', 'Modelo B com 4GB de RAM', 'Armário A - Prateleira 2', 'Novo', '2024-01-15', 'Disponível', '77777777000177', 1),
+('Kit Sensor Ultrassônico', 'Pacote com 10 sensores HC-SR04', 'Gaveta E1', 'Bom', '2023-11-20', 'Disponível', '33333333000133', 1),
+('Motor DC com Roda', 'Kit motor + roda para carrinho robô', 'Gaveta E2', 'Novo', '2024-02-10', 'Disponível', '11111111000111', 1),
+('Microbit V2', 'Placa educativa para programação em blocos', 'Armário A - Prateleira 1', 'Excelente', '2024-03-05', 'Disponível', '77777777000177', 1),
+('Kit Arduino Mega', 'Placa Mega 2560 com cabo USB', 'Armário A - Prateleira 3', 'Usado', '2022-08-15', 'Manutenção', '33333333000133', 1),
+('Protoboard 830 Furos', 'Placa de ensaio grande', 'Gaveta E3', 'Bom', '2023-05-10', 'Disponível', '11111111000111', 1);
+
+-- IMPRESSÃO 3D
+INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
+('Impressora Prusa i3 MK3', 'Impressora 3D de alta precisão', 'Bancada 3', 'Excelente', '2023-12-01', 'Disponível', '66666666000166', 2),
+('Filamento PLA Branco', 'Rolo de 1kg - 1.75mm', 'Armário B - Estoque', 'Novo', '2024-04-01', 'Disponível', '22222222000122', 2),
+('Filamento ABS Preto', 'Rolo de 1kg - 1.75mm (Requer mesa aquecida)', 'Armário B - Estoque', 'Novo', '2024-04-01', 'Disponível', '22222222000122', 2),
+('Resina UV Cinza', 'Garrafa de 500ml para impressora SLA', 'Armário Químico', 'Novo', '2024-02-20', 'Disponível', '22222222000122', 2),
+('Bico Extrusor 0.4mm', 'Kit reposição para Ender 3', 'Caixa de Ferramentas 3D', 'Novo', '2023-10-10', 'Disponível', '22222222000122', 2);
+
+-- FERRAMENTAS
+INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
+('Parafusadeira Bosch', 'Bateria 12V com kit de bits', 'Painel de Ferramentas', 'Bom', '2023-01-15', 'Emprestado', '44444444000144', 3),
+('Jogo de Chaves de Fenda', 'Kit com 6 chaves (fenda e philips)', 'Caixa F1', 'Usado', '2022-05-20', 'Disponível', '55555555000155', 3),
+('Alicate de Corte', 'Alicate diagonal para eletrônica', 'Caixa F2', 'Bom', '2023-06-15', 'Disponível', '55555555000155', 3),
+('Ferro de Solda', '60W com suporte', 'Bancada Eletrônica', 'Bom', '2023-09-01', 'Disponível', '11111111000111', 3),
+('Multímetro Digital', 'Mede tensão, corrente e resistência', 'Bancada Eletrônica', 'Novo', '2024-01-20', 'Disponível', '11111111000111', 3),
+('Serra Tico-Tico', 'Serra elétrica para madeira e metal', 'Armário Inferior', 'Bom', '2022-11-30', 'Disponível', '44444444000144', 3);
+
+INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1),
+('Kit Arduino Uno', 'Kit extra para aulas grandes', 'Armário A - Prateleira 4', 'Novo', '2024-05-10', 'Disponível', '11111111000111', 1);

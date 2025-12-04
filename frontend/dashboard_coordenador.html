@@ -12,7 +12,10 @@
     <div class="container-fluid px-5">
       <a class="navbar-brand fw-bold" href="#">Coordenação - Maker Central</a>
       <div class="d-flex align-items-center">
-        <span id="msgUsuario" class="text-white me-3">Olá, Coordenador(a)</span>
+        <div class="text-white text-end me-3" style="line-height: 1.2;">
+            <div class="fw-bold fs-5" id="saudacaoNome">Olá!</div>
+            <small class="opacity-75" id="saudacaoInfo">Carregando...</small>
+        </div>
         <button id="btnSair" class="btn btn-outline-light btn-sm">Sair</button>
       </div>
     </div>
@@ -79,7 +82,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                       <tr>
-                        <th class="ps-4">Professor / Plano</th>
+                        <th class="ps-4">Detalhes do Plano (Prof / Título)</th>
                         <th>ID</th>
                         <th>Status</th>
                         <th class="text-end pe-4">Ação</th>
@@ -99,7 +102,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4">Professor / Plano</th>
+                            <th class="ps-4">Detalhes do Plano</th>
                             <th>Status Admin</th>
                         </tr>
                     </thead>
@@ -120,14 +123,16 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // 1. Verificação de Login
+    // 1. Verificação de Login e Saudação
     const matricula = sessionStorage.getItem("maker_matricula");
+    const nome = sessionStorage.getItem("maker_nome") || "Coordenador";
     const perfil = sessionStorage.getItem("maker_perfil");
 
     if (!matricula || perfil !== "COORDENADOR") {
         window.location.href = "login_coordenador.html";
     } else {
-        document.getElementById("msgUsuario").innerText = `Olá, Coord. ${matricula}`;
+        document.getElementById("saudacaoNome").innerText = `Olá, ${nome}!`;
+        document.getElementById("saudacaoInfo").innerText = `Coordenador - Matrícula: ${matricula}`;
     }
 
     document.getElementById("btnSair").addEventListener("click", () => {
@@ -137,15 +142,11 @@
 
     const API_URL = "http://localhost:8000/requisicao";
     
-    // Variáveis de Estado
     let planosDaEscola = [];
-    let selecionados = new Set(); // Guarda os IDs dos planos que o coord quer enviar
-
-    // --- FUNÇÕES DE LÓGICA ---
+    let selecionados = new Set(); 
 
     async function carregarDados() {
         try {
-            // Busca todos os planos da escola
             const response = await fetch(`${API_URL}/planos-de-aula/coordenador/${matricula}`);
             if (!response.ok) throw new Error("Erro ao buscar planos");
             
@@ -172,7 +173,10 @@
         let countAprovados = 0;
 
         planosDaEscola.forEach(plano => {
-            // Separação: O que é NOVO (Em Análise) vs O que já foi ENVIADO/PROCESSADO
+            // Garante que o nome exista (fallback caso o backend não mande)
+            const nomeProf = plano.nome_professor || "Prof. Desconhecido";
+
+            // Separação: O que é NOVO vs O que já foi processado
             if (plano.status === "EM ANÁLISE" || plano.status === "REJEITADO") {
                 // Aba 1: Novos
                 countNovos++;
@@ -183,8 +187,9 @@
                 const linha = `
                     <tr>
                         <td class="ps-4">
-                            <strong>Prof. ${plano.id_professor}</strong><br>
-                            <span class="text-dark">${plano.titulo}</span>
+                            <strong class="text-primary">Prof. ${nomeProf}</strong>
+                            <span class="text-muted small">(Matrícula: ${plano.id_professor})</span><br>
+                            <span class="fw-bold text-dark">${plano.titulo}</span>
                         </td>
                         <td>${plano.id}</td>
                         <td><span class="badge bg-warning text-dark">${plano.status}</span></td>
@@ -198,7 +203,7 @@
                 tbodyNovos.innerHTML += linha;
 
             } else {
-                // Aba 2: Histórico (ENVIADO, APROVADO, etc)
+                // Aba 2: Histórico
                 if (plano.status === "ENVIADO") countEnviados++;
                 if (plano.status === "APROVADO") countAprovados++;
 
@@ -209,7 +214,9 @@
                 const linhaHist = `
                     <tr>
                         <td class="ps-4">
-                            <strong>Prof. ${plano.id_professor}</strong> - ${plano.titulo}
+                            <strong class="text-primary">Prof. ${nomeProf}</strong>
+                            <span class="text-muted small">(Matrícula: ${plano.id_professor})</span><br>
+                            <span class="text-dark">${plano.titulo}</span>
                         </td>
                         <td><span class="badge ${badgeColor}">${plano.status}</span></td>
                     </tr>
@@ -218,7 +225,6 @@
             }
         });
 
-        // Atualiza Cards e Mensagens de Vazio
         document.getElementById("numPlanosRecebidos").innerText = countNovos;
         document.getElementById("numEnviados").innerText = countEnviados;
         document.getElementById("numAprovados").innerText = countAprovados;
@@ -227,28 +233,18 @@
         msgSemHist.style.display = (countEnviados + countAprovados) === 0 ? "block" : "none";
     }
 
-    // Marca/Desmarca para envio
     function toggleSelecao(id) {
-        if (selecionados.has(id)) {
-            selecionados.delete(id);
-        } else {
-            selecionados.add(id);
-        }
-        renderizarTudo(); // Redesenha para mudar a cor do botão
+        if (selecionados.has(id)) { selecionados.delete(id); } else { selecionados.add(id); }
+        renderizarTudo();
     }
 
-    // A Lógica de Envio que faltava!
     async function consolidarPedidos() {
-        if (selecionados.size === 0) {
-            alert("Selecione pelo menos um plano clicando em 'Incluir'!");
-            return;
-        }
-
+        if (selecionados.size === 0) { alert("Selecione pelo menos um plano!"); return; }
         if (!confirm(`Deseja enviar ${selecionados.size} planos para a Administração?`)) return;
 
         const payload = {
             id_coordenador: parseInt(matricula),
-            planos_ids: Array.from(selecionados) // Transforma Set em Lista [1, 5, 8]
+            planos_ids: Array.from(selecionados)
         };
 
         try {
@@ -261,23 +257,14 @@
             if (response.ok) {
                 alert("Solicitação enviada com sucesso!");
                 selecionados.clear();
-                carregarDados(); // Recarrega tudo (os planos vão mudar de aba)
-                
-                // Opcional: Mudar o foco para a aba de histórico
+                carregarDados(); 
                 const tabHist = new bootstrap.Tab(document.getElementById('solic-tab'));
                 tabHist.show();
-            } else {
-                alert("Erro ao enviar solicitação.");
-            }
-        } catch (erro) {
-            console.error(erro);
-            alert("Erro de conexão.");
-        }
+            } else { alert("Erro ao enviar solicitação."); }
+        } catch (erro) { console.error(erro); alert("Erro de conexão."); }
     }
 
-    // Inicia
     carregarDados();
-
   </script>
 </body>
 </html>

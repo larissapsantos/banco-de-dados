@@ -65,8 +65,7 @@
 
       const data = await res.json();
 
-      // --- CORREÇÃO DE SEGURANÇA ---
-      // Se a resposta não tiver o objeto "Cadastro", significa que não achou no banco
+
       if (!data.Cadastro) {
           showAlert("danger", "Matrícula não encontrada no registro de Professores.");
           return;
@@ -80,6 +79,7 @@
       // -----------------------------
 
       sessionStorage.setItem("maker_matricula", matricula);
+      sessionStorage.setItem("maker_nome", data.Cadastro.nome);
       sessionStorage.setItem("maker_perfil", "PROFESSOR"); // Marca o perfil exato
 
       showAlert("success", "Login realizado! Redirecionando...");

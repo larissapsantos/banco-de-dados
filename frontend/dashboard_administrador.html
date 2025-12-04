@@ -11,25 +11,28 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container-fluid px-5">
       <a class="navbar-brand fw-bold" href="#">Admin - Maker Central</a>
+      
       <div class="d-flex align-items-center">
-        <span id="usuarioLogado" class="text-white me-3">Olá, Administrador</span>
+        <div class="text-white text-end me-3" style="line-height: 1.2;">
+            <div class="fw-bold fs-5" id="saudacaoNome">Olá!</div>
+            <small class="opacity-75" id="saudacaoInfo">Carregando...</small>
+        </div>
         <button id="btnSair" class="btn btn-outline-light btn-sm">Sair</button>
       </div>
     </div>
   </nav>
 
   <div class="container mt-5">
-    
     <div class="row mb-5">
       <div class="col-md-4 mb-4">
         <div class="card text-center border-warning h-100">
           <div class="card-body">
             <h2 id="numPendentes" class="text-warning display-5 fw-bold">0</h2>
-            <p class="mb-0">Solicitações do Meu Bairro (Pendentes)</p>
+            <p class="mb-0">Solicitações Pendentes (Meu Bairro)</p>
           </div>
         </div>
       </div>
-      </div>
+    </div>
 
     <h4 class="fw-bold text-secondary mb-3">Solicitações Recebidas</h4>
     
@@ -44,11 +47,10 @@
                 <th class="text-end pe-4">Avaliação</th>
               </tr>
             </thead>
-            <tbody id="tabelaSolicitacoes">
-               </tbody>
+            <tbody id="tabelaSolicitacoes"></tbody>
           </table>
           <div id="msgVazio" class="text-center p-5 text-muted" style="display:none;">
-            Nenhuma solicitação pendente encontrada para as escolas do seu bairro.
+            Nenhuma solicitação pendente no momento.
           </div>
         </div>
       </div>
@@ -58,15 +60,16 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // 1. Verificação de Login
     const matricula = sessionStorage.getItem("maker_matricula");
+    const nome = sessionStorage.getItem("maker_nome") || "Usuário"; // Pega o nome!
     const perfil = sessionStorage.getItem("maker_perfil");
 
     if (!matricula || perfil !== "ADMINISTRADOR") {
-        alert("Acesso restrito.");
         window.location.href = "login_administrador.html";
     } else {
-        document.getElementById("usuarioLogado").innerText = `Olá, Admin ${matricula}`;
+        // PREENCHE A SAUDAÇÃO
+        document.getElementById("saudacaoNome").innerText = `Olá, ${nome}!`;
+        document.getElementById("saudacaoInfo").innerText = `Admin - Matrícula: ${matricula}`;
     }
 
     document.getElementById("btnSair").addEventListener("click", () => {
@@ -76,16 +79,14 @@
 
     const API_URL = `http://localhost:8000/requisicao`;
 
-    // 2. Carregar Planos (Filtrados por Bairro via Backend)
     async function carregarSolicitacoes() {
         const tbody = document.getElementById("tabelaSolicitacoes");
         const msgVazio = document.getElementById("msgVazio");
         const contador = document.getElementById("numPendentes");
 
         try {
-            // Chama a rota inteligente que usa o bairro do admin
             const response = await fetch(`${API_URL}/planos-de-aula/administrador/${matricula}`);
-            if (!response.ok) throw new Error("Erro ao buscar solicitações");
+            if (!response.ok) throw new Error("Erro API");
             
             const planos = await response.json();
             
@@ -96,55 +97,40 @@
                 msgVazio.style.display = "block";
             } else {
                 msgVazio.style.display = "none";
-                
                 planos.forEach(plano => {
                     const linha = `
                         <tr>
                             <td class="ps-4">
-                                <span class="badge bg-primary mb-1">Prof. Matrícula: ${plano.id_professor}</span>
-                                <strong class="d-block text-dark">${plano.titulo}</strong>
+                                <strong class="text-primary">Prof. ${plano.nome_professor}</strong> 
+                                <span class="text-muted small">(Matrícula: ${plano.id_professor})</span><br>
+                                <span class="fw-bold text-dark">${plano.titulo}</span><br>
                                 <small class="text-muted">${plano.descricao}</small>
                             </td>
                             <td><span class="badge bg-info text-dark">${plano.status}</span></td>
                             <td class="text-end pe-4">
                                 <button class="btn btn-sm btn-success me-1" onclick="avaliar(${plano.id}, 'APROVADO')">Aprovar</button>
-                                <button class="btn btn-sm btn-danger" onclick="avaliar(${plano.id}, 'REJEITADO')">Rejeitar</button>
+                                <button class="btn btn-sm btn-danger" onclick="avaliar(${plano.id}, 'REJEITADO')">Recusar</button>
                             </td>
                         </tr>
                     `;
                     tbody.innerHTML += linha;
                 });
             }
-        } catch (erro) {
-            console.error(erro);
-            tbody.innerHTML = `<tr><td colspan="3" class="text-danger text-center">Erro de conexão com o servidor.</td></tr>`;
-        }
+        } catch (erro) { console.error(erro); }
     }
 
-    // 3. Função de Avaliar (Aprovar/Rejeitar)
     async function avaliar(id, novoStatus) {
-        if(!confirm(`Confirma a alteração do status para ${novoStatus}?`)) return;
-
+        if(!confirm(`Confirmar status: ${novoStatus}?`)) return;
         try {
-            const response = await fetch(`${API_URL}/planos-de-aula/${id}/avaliacao`, {
+            await fetch(`${API_URL}/planos-de-aula/${id}/avaliacao`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: novoStatus })
             });
-
-            if (response.ok) {
-                alert("Status atualizado com sucesso!");
-                carregarSolicitacoes(); // Recarrega a tabela (o plano vai sumir pois não é mais "ENVIADO")
-            } else {
-                alert("Erro ao atualizar status.");
-            }
-        } catch (erro) {
-            console.error(erro);
-            alert("Erro de conexão.");
-        }
+            carregarSolicitacoes();
+        } catch (erro) { alert("Erro de conexão"); }
     }
 
-    // Inicia
     carregarSolicitacoes();
   </script>
 </body>

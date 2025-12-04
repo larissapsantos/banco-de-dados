@@ -17,22 +17,46 @@ class PlanoAulaRepos:
     def buscar_por_id(self, db: Session, id: int):
         return db.query(PlanoAula).filter(PlanoAula.id == id).first()
     
-
+    def listar_por_professor(self, db: Session, id_professor: int):
+        return db.query(PlanoAula).filter(PlanoAula.id_professor == id_professor).all() # type: ignore
+    
     def listar_por_escola(self, db: Session, id_escola: int):
-        return db.query(PlanoAula).join(Professor).filter(
+        """
+        Retorna planos + nome do professor para o Coordenador
+        """
+        # Busca (Plano, NomeProfessor) fazendo a junção das tabelas
+        resultados = db.query(PlanoAula, Professor.nome).join(Professor).filter(
             Professor.id_escola == id_escola
         ).all()
-    
+        
+        # Formata para um JSON bonito que o front entende
+        lista_formatada = []
+        for plano, nome_prof in resultados:
+            item = plano.__dict__.copy() # Pega os dados do plano
+            if '_sa_instance_state' in item: del item['_sa_instance_state'] # Limpeza técnica
+            item['nome_professor'] = nome_prof # Adiciona o nome!
+            lista_formatada.append(item)
+            
+        return lista_formatada
 
     def listar_pendentes_por_bairro(self, db: Session, bairro: str):
         """
-        Busca planos com status 'ENVIADO' que pertençam a escolas
-        do mesmo bairro solicitado.
+        Retorna planos + nome do professor para o Admin
         """
-        return db.query(PlanoAula).join(Professor).join(Escola).filter(
+        resultados = db.query(PlanoAula, Professor.nome).join(Professor).join(Escola).filter(
             Escola.bairro == bairro,
             PlanoAula.status == "ENVIADO" # type: ignore
         ).all()
+
+        lista_formatada = []
+        for plano, nome_prof in resultados:
+            item = plano.__dict__.copy()
+            if '_sa_instance_state' in item: del item['_sa_instance_state']
+            item['nome_professor'] = nome_prof
+            lista_formatada.append(item)
+            
+        return lista_formatada
+
     
     def editar(self, db: Session, id: int, novos_dados: dict):
         plano_aula = self.buscar_por_id(db, id)
