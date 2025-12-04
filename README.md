@@ -39,6 +39,7 @@ das solicitações.
 - Instalar o venv com `python -m venv venv`
 - Ativar o venv com `source venv/bin/activate`
 - Instalar as dependências do projeto com `pip install -r requirements.txt`
+- Executar o servidor: `uvicorn src.main:app --reload`
 - Rodar o projeto com `python src/main.py`
 
 ---
