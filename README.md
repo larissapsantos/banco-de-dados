@@ -46,7 +46,12 @@ das solicitações.
 
 ## Boas práticas no desenvolvimento
 - Ao instalar uma nova lib, rodar: `pip freeze > requirements.txt` para que liste as dependências necessárias para rodar o projeto.
-- O projeto segue o ***padrão de arquitetura MVC*** e a seguir tem-se as responsabilidades de cada camada:
-    - **Controllers**: camada de controle;
-    - **Models**: manipulação dos dados;
-    - **Views**: interação do usuário.
+
+- O projeto têm 2 serviços:
+    - **Backend**: processos, armazenamento de dados e acesso;
+    - **Frontend**: interfaces, experiência do usuário, comunicação e estética.
+
+- O backend é dividido em 3 camadas e a seguir têm-se as responsabilidades de cada uma delas:
+    - **Repositories**: manipulação dos dados;
+    - **Models**: entidades do projeto;
+    - **Views**: apresentação.
