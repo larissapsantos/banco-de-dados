@@ -1,9 +1,18 @@
-from src.models.escola import Escola
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 class EscolaRepos:
+    
     def listar(self, db: Session):
-        return db.query(Escola).all()
+        sql = text("SELECT * FROM escola ORDER BY id")
+        result = db.execute(sql).mappings().all()
+        return result
     
     def buscar_por_id(self, db: Session, id: int):
-        return db.query(Escola).filter(Escola.id == id).first()
+        sql = text("""
+            SELECT * FROM escola
+            WHERE id = :id
+            LIMIT 1
+        """)
+        result = db.execute(sql, {"id": id}).mappings().first()
+        return result

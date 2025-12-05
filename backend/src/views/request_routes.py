@@ -1,48 +1,34 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 from src.database import get_db
-
-# imports dos modelos e schemas
-from src.models.plano_aula import PlanoAula, ConsolidacaoPlanoSchema, AprovarPlanoSchema, AtualizarPlanoAulaSchema
-from src.models.emprestimo import Emprestimo, EmprestimoSchema, AtualizarEmprestimoSchema
-from src.models.solicitacao import Solicitacao, SolicitacaoSchema, ConsolidacaoSolicitacaoSchema, AtualizarSolicitacaoSchema
-
-# imports dos repositórios
+from src.models.plano_aula import ConsolidacaoPlanoSchema, AprovarPlanoSchema, AtualizarPlanoAulaSchema, PlanoAulaSchema
+from src.models.emprestimo import EmprestimoSchema, AtualizarEmprestimoSchema
+from src.models.solicitacao import SolicitacaoSchema, ConsolidacaoSolicitacaoSchema, AtualizarSolicitacaoSchema
 from src.repositories.plano_aula import PlanoAulaRepos
 from src.repositories.emprestimo import EmprestimoRepos
 from src.repositories.solicitacao import SolicitacaoRepos
 from src.repositories.coordenador import CoordenadorRepos
 from src.repositories.administrador import AdministradorRepo
 from src.repositories.professor import ProfessorRepos 
-from pydantic import BaseModel
+from src.repositories.equipamento import EquipamentoRepos
 
 request = APIRouter(prefix="/requisicao", tags=["request"])
 
-# schema específico para não exigir id_coordenador do professor
-class PlanoAulaCreateSchema(BaseModel):
-    titulo: str
-    descricao: str
-    status: str
-    id_professor: int
 
 # CRUD - PLANOS DE AULA
 
 @request.get("/planos-de-aula")
 async def listar_planos(db: Session = Depends(get_db)):
-    """Busca todos os planos no banco de dados"""
     repo = PlanoAulaRepos()
     return repo.listar(db)
 
 @request.get("/planos-de-aula/professor/{matricula}")
 async def listar_planos_do_professor(matricula: int, db: Session = Depends(get_db)):
-    """Lista apenas os planos criados pelo professor logado"""
     repo = PlanoAulaRepos()
     return repo.listar_por_professor(db, matricula)
 
 @request.get("/planos-de-aula/coordenador/{matricula}")
 async def listar_planos_por_coordenador(matricula: int, db: Session = Depends(get_db)):
-    """Lista planos da escola do coordenador logado"""
     repo_coord = CoordenadorRepos()
     coordenador = repo_coord.buscar_por_id(db, matricula)
     
@@ -51,11 +37,10 @@ async def listar_planos_por_coordenador(matricula: int, db: Session = Depends(ge
 
     repo_plano = PlanoAulaRepos()
    
-    return repo_plano.listar_por_escola(db, int(coordenador.id_escola)) # type: ignore
+    return repo_plano.listar_por_escola(db, int(coordenador.id_escola)) 
 
 @request.get("/planos-de-aula/administrador/{matricula}")
 async def listar_planos_para_admin(matricula: int, db: Session = Depends(get_db)):
-    """Busca planos ENVIADOS do bairro do administrador"""
     repo_admin = AdministradorRepo()
     admin = repo_admin.buscar_por_id(db, matricula)
     
@@ -63,33 +48,34 @@ async def listar_planos_para_admin(matricula: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="Administrador não encontrado")
     
     repo_plano = PlanoAulaRepos()
-    return repo_plano.listar_pendentes_por_bairro(db, admin.bairro) # type: ignore
+    return repo_plano.listar_pendentes_por_bairro(db, admin.bairro) 
 
 @request.post("/planos-de-aula")
-async def criar_plano(dados: PlanoAulaCreateSchema, db: Session = Depends(get_db)):
-    """Professor cria plano. Coordenador é descoberto automaticamente."""
-   
+async def criar_plano(dados: PlanoAulaSchema, db: Session = Depends(get_db)):
     repo_prof = ProfessorRepos()
     professor = repo_prof.buscar_por_id(db, dados.id_professor)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
 
     repo_coord = CoordenadorRepos()
-    coordenador = repo_coord.buscar_por_escola(db, int(professor.id_escola)) # type: ignore
-    
+    coordenadores = repo_coord.buscar_por_escola(db, int(professor.id_escola))
+    coordenador = next((c for c in coordenadores if c.matricula == dados.id_coordenador), None)
     if not coordenador:
         raise HTTPException(status_code=400, detail="Nenhum coordenador encontrado para sua escola. Contate o suporte.")
 
     repo_plano = PlanoAulaRepos()
-    novo_plano = PlanoAula(
+    novo_plano = PlanoAulaSchema(
         titulo=dados.titulo,
         descricao=dados.descricao,
         status=dados.status,
         id_professor=dados.id_professor,
         id_coordenador=coordenador.matricula
     )
-    repo_plano.criar(db, novo_plano)
-    return {"mensagem": "Plano criado com sucesso!", "id": novo_plano.id}
+    resultado = repo_plano.criar(db, novo_plano.model_dump())
+    if resultado is None:
+        raise HTTPException(status_code=400, detail="Não foi possível criar o plano de aula.")
+    
+    return {"mensagem": "Plano criado com sucesso!"}
 
 @request.put("/planos-de-aula/{id}")
 async def atualizar_plano(id: int, dados: AtualizarPlanoAulaSchema, db: Session = Depends(get_db)):
@@ -98,7 +84,7 @@ async def atualizar_plano(id: int, dados: AtualizarPlanoAulaSchema, db: Session 
     atualizado = repo.editar(db, id, dados.dict(exclude_unset=True))
     
     if atualizado is None:
-        raise HTTPException(status_code=404, detail="Plano não encontrado")
+        raise HTTPException(status_code=400, detail="Não foi possível deletar o plano de aula.")
 
     return {
         "mensagem": "Plano atualizado com sucesso!",
@@ -111,7 +97,6 @@ async def atualizar_plano(id: int, dados: AtualizarPlanoAulaSchema, db: Session 
 
 @request.post("/planos-de-aula/consolidar")
 async def consolidar_planos(dados: ConsolidacaoPlanoSchema, db: Session = Depends(get_db)):
-    """Muda status para ENVIADO"""
     repo = PlanoAulaRepos()
     count = 0
     for id_plano in dados.planos_ids:
@@ -137,6 +122,8 @@ async def deletar_plano(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Plano não encontrado")
     return {"mensagem": "Plano removido com sucesso"}
 
+# CRUD - EMPRÉSTIMOS
+
 @request.get("/emprestimos")
 async def listar_emprestimos(db: Session = Depends(get_db)):
     repo = EmprestimoRepos()
@@ -153,16 +140,17 @@ async def obter_emprestimo(id: int, db: Session = Depends(get_db)):
 @request.post("/emprestimos")
 async def criar_emprestimo(dados: EmprestimoSchema, db: Session = Depends(get_db)):
     repo = EmprestimoRepos()
-    novo = Emprestimo(
-        quantidade=dados.quantidade,
+    novo = EmprestimoSchema(
         id_escola=dados.id_escola,
         id_equipamento=dados.id_equipamento,
         id_plano_aula=dados.id_plano_aula
     )
-    novo.data_hora = dados.data_hora # type: ignore
+    novo.data_hora = dados.data_hora
     
-    repo.criar(db, novo)
-    return {"mensagem": "Empréstimo criado com sucesso!", "id": novo.id}
+    result = repo.criar(db, novo.model_dump())
+    if result is None:
+        raise HTTPException(status_code=400, detail="Falha ao criar empréstimo.")
+    return {"mensagem": "Empréstimo criado com sucesso!", "id": result.id}
 
 @request.put("/emprestimos/{id}")
 async def atualizar_emprestimo(id: int, dados: AtualizarEmprestimoSchema, db: Session = Depends(get_db)):
@@ -175,8 +163,8 @@ async def atualizar_emprestimo(id: int, dados: AtualizarEmprestimoSchema, db: Se
 @request.delete("/emprestimos/{id}")
 async def deletar_emprestimo(id: int, db: Session = Depends(get_db)):
     repo = EmprestimoRepos()
-    if not repo.deletar(db, id):
-        raise HTTPException(status_code=404, detail="Empréstimo não encontrado")
+    if not repo.excluir(db, id):
+        raise HTTPException(status_code=404, detail="Esse empréstimo não pode ser deletado")
     return {"mensagem": "Empréstimo removido com sucesso"}
 
 
@@ -191,26 +179,25 @@ async def listar_solicitacoes(db: Session = Depends(get_db)):
 async def criar_solicitacao(dados: SolicitacaoSchema, db: Session = Depends(get_db)):
     repo = SolicitacaoRepos()
 
-    nova = Solicitacao(
-        id_administrador=dados.id_servidor, 
+    nova = SolicitacaoSchema(
+        id_servidor=dados.id_servidor, 
         id_emprestimo=dados.id_emprestimo,
         id_coordenador=dados.id_coordenador,
         status=dados.status
     )
-    repo.criar(db, nova)
+    repo.criar(db, nova.model_dump())
     return {"mensagem": "Solicitação criada com sucesso!"}
 
 @request.post("/solicitacoes/consolidar")
 async def consolidar_solicitacoes(dados: ConsolidacaoSolicitacaoSchema, db: Session = Depends(get_db)):
     repo = SolicitacaoRepos()
     count = 0
-    for ids in dados.solicitacoes_ids:
-
+    for solicitacao in dados.model_dump()["solicitacoes_ids"]:
         item = repo.editar(
             db,
-            ids["id_servidor"],
-            ids["id_emprestimo"],
-            ids["id_coordenador"],
+            solicitacao["id_servidor"],
+            solicitacao["id_emprestimo"],
+            solicitacao["id_coordenador"],
             {"status": "ENVIADO"}
         )
         if item: count += 1
@@ -239,5 +226,11 @@ async def deletar_solicitacao(id_servidor: int, id_emprestimo: int, id_coordenad
 
 # Equipamentos
 @request.get("/equipamentos")
-async def listar_equipamentos():
-    return {"mensagem": "Rota de equipamentos ainda não implementada."}
+async def listar_equipamentos(db: Session = Depends(get_db)):
+    repo = EquipamentoRepos()
+    return repo.listar(db)
+
+@request.get("/equipamentos/{id}")
+async def listar_equipamentos(id: int,db: Session = Depends(get_db)):
+    repo = EquipamentoRepos()
+    return repo.buscar_por_id(db, id)

@@ -1,9 +1,17 @@
-from src.models.administrador import Administrador
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 class AdministradorRepo:
     def listar(self, db: Session):
-        return db.query(Administrador).all()
+        sql = text("SELECT * FROM administrador")
+        result = db.execute(sql).mappings().all()   # retorna dicts
+        return result
     
     def buscar_por_id(self, db: Session, id: int):
-        return db.query(Administrador).filter(Administrador.matricula == id).first()
+        sql = text("""
+            SELECT * FROM administrador
+            WHERE matricula = :matricula
+            LIMIT 1
+        """)
+        result = db.execute(sql, {"matricula": id}).mappings().first()
+        return result

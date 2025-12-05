@@ -1,13 +1,13 @@
-from .equipamento import Equipamento
-from .categoria import Categoria
-from .fabricante import Fabricante
-from .escola import Escola
-from .professor import Professor
-from .coordenador import Coordenador
-from .administrador import Administrador
-from .solicitacao import Solicitacao
-from .plano_aula import PlanoAula
-from .emprestimo import Emprestimo
+from .equipamento import EquipamentoRepos
+from .categoria import CategoriaRepos
+from .fabricante import FabricanteRepos
+from .escola import EscolaRepos
+from .professor import ProfessorRepos
+from .coordenador import CoordenadorRepos
+from .administrador import AdministradorRepo
+from .solicitacao import SolicitacaoRepos
+from .plano_aula import PlanoAulaRepos
+from .emprestimo import EmprestimoRepos
 
 __all__ = [
     "Equipamento",
