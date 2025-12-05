@@ -76,7 +76,6 @@ CREATE TABLE plano_aula (
 
 CREATE TABLE emprestimo (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    quantidade INT,
     data_hora DATETIME NOT NULL,
     id_escola INT NOT NULL,
     id_equipamento INT NOT NULL,
