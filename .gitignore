@@ -2,3 +2,4 @@
 .DS_Store
 /backend/.env
 /backend/.vscode
+**/__pycache__
