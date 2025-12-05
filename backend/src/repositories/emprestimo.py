@@ -19,7 +19,7 @@ class EmprestimoRepos:
         emprestimo = self.buscar_por_id(db, id)
         if not emprestimo:
             return None
-        campos_permitidos = ["quantidade", "id_escola", "id_equipamento", "id_plano_aula"]
+        campos_permitidos = ["id_escola", "id_equipamento", "id_plano_aula"]
         for campo in campos_permitidos:
             if campo in novos_dados:
                 setattr(emprestimo, campo, novos_dados[campo])
