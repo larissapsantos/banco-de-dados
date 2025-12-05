@@ -129,7 +129,6 @@ INSERT INTO equipamento (nome, descricao, localizacao, condicao, status, id_fabr
 ('Kit LEGO Mindstorms', 'Robótica educacional EV3', 'Armário B', 'Usado', 'Disponível', '11111111000111', 1, '2022-05-20'),
 ('Notebook Dell', 'Inspiron 15 para programação', 'Carrinho 1', 'Bom', 'Disponível', '11111111000111', 1, '2023-02-10');
 
--- ROBÓTICA
 INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
 ('Placa Raspberry Pi 4', 'Modelo B com 4GB de RAM', 'Armário A - Prateleira 2', 'Novo', '2024-01-15', 'Disponível', '77777777000177', 1),
 ('Kit Sensor Ultrassônico', 'Pacote com 10 sensores HC-SR04', 'Gaveta E1', 'Bom', '2023-11-20', 'Disponível', '33333333000133', 1),
@@ -138,7 +137,6 @@ INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, st
 ('Kit Arduino Mega', 'Placa Mega 2560 com cabo USB', 'Armário A - Prateleira 3', 'Usado', '2022-08-15', 'Manutenção', '33333333000133', 1),
 ('Protoboard 830 Furos', 'Placa de ensaio grande', 'Gaveta E3', 'Bom', '2023-05-10', 'Disponível', '11111111000111', 1);
 
--- IMPRESSÃO 3D
 INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
 ('Impressora Prusa i3 MK3', 'Impressora 3D de alta precisão', 'Bancada 3', 'Excelente', '2023-12-01', 'Disponível', '66666666000166', 2),
 ('Filamento PLA Branco', 'Rolo de 1kg - 1.75mm', 'Armário B - Estoque', 'Novo', '2024-04-01', 'Disponível', '22222222000122', 2),
@@ -146,7 +144,6 @@ INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, st
 ('Resina UV Cinza', 'Garrafa de 500ml para impressora SLA', 'Armário Químico', 'Novo', '2024-02-20', 'Disponível', '22222222000122', 2),
 ('Bico Extrusor 0.4mm', 'Kit reposição para Ender 3', 'Caixa de Ferramentas 3D', 'Novo', '2023-10-10', 'Disponível', '22222222000122', 2);
 
--- FERRAMENTAS
 INSERT INTO equipamento (nome, descricao, localizacao, condicao, data_compra, status, id_fabricante, id_categoria) VALUES 
 ('Parafusadeira Bosch', 'Bateria 12V com kit de bits', 'Painel de Ferramentas', 'Bom', '2023-01-15', 'Emprestado', '44444444000144', 3),
 ('Jogo de Chaves de Fenda', 'Kit com 6 chaves (fenda e philips)', 'Caixa F1', 'Usado', '2022-05-20', 'Disponível', '55555555000155', 3),
