@@ -5,13 +5,16 @@
   <title>Painel Administrativo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .nav-link { cursor: pointer; }
+    .tab-pane:not(.active) { display: none; }
+  </style>
 </head>
 <body class="bg-light">
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container-fluid px-5">
       <a class="navbar-brand fw-bold" href="#">Admin - Maker Central</a>
-      
       <div class="d-flex align-items-center">
         <div class="text-white text-end me-3" style="line-height: 1.2;">
             <div class="fw-bold fs-5" id="saudacaoNome">Olá!</div>
@@ -23,35 +26,174 @@
   </nav>
 
   <div class="container mt-5">
-    <div class="row mb-5">
-      <div class="col-md-4 mb-4">
-        <div class="card text-center border-warning h-100">
+    
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card text-center border-warning h-100 shadow-sm">
           <div class="card-body">
             <h2 id="numPendentes" class="text-warning display-5 fw-bold">0</h2>
-            <p class="mb-0">Solicitações Pendentes (Meu Bairro)</p>
+            <p class="mb-0 fw-bold text-secondary">Solicitações Pendentes</p>
           </div>
         </div>
       </div>
     </div>
 
-    <h4 class="fw-bold text-secondary mb-3">Solicitações Recebidas</h4>
-    
-    <div class="card shadow-sm border-0">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th class="ps-4">Detalhes do Plano</th>
-                <th>Status Atual</th>
-                <th class="text-end pe-4">Avaliação</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaSolicitacoes"></tbody>
-          </table>
-          <div id="msgVazio" class="text-center p-5 text-muted" style="display:none;">
-            Nenhuma solicitação pendente no momento.
+    <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold text-success" id="solicitacoes-tab" data-bs-toggle="tab" data-bs-target="#solicitacoes-pane" type="button" role="tab">
+            Análise de Pedidos
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold text-secondary" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico-pane" type="button" role="tab">
+            Histórico de Decisões
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold text-secondary" id="acervo-tab" data-bs-toggle="tab" data-bs-target="#acervo-pane" type="button" role="tab">
+            Visualizar Acervo
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabsContent">
+      
+      <div class="tab-pane fade show active" id="solicitacoes-pane" role="tabpanel">
+        <h4 class="fw-bold text-secondary mb-3">Solicitações Recebidas</h4>
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4 w-50">Detalhes do Plano</th>
+                    <th class="text-center w-25">Status Atual</th>
+                    <th class="text-end pe-4 w-25">Avaliação</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaSolicitacoes"></tbody>
+              </table>
+              <div id="msgVazio" class="text-center p-5 text-muted" style="display:none;">
+                Nenhuma solicitação pendente no momento.
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="historico-pane" role="tabpanel">
+        <div class="alert alert-info border-0 mb-3">
+            <small>ℹ️ Nota: Planos aprovados são arquivados. Aqui são exibidos apenas os planos recusados/devolvidos.</small>
+        </div>
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4 w-75">Detalhes do Plano</th>
+                    <th class="text-center w-25">Decisão</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaHistorico"></tbody>
+              </table>
+              <div id="msgHistVazio" class="text-center p-5 text-muted" style="display:none;">
+                Nenhum histórico encontrado.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="acervo-pane" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-secondary">Estoque de Equipamentos</h4>
+        </div>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body bg-white rounded">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-secondary">Busca Rápida</label>
+                        <input type="text" id="filtroTexto" class="form-control" placeholder="Nome, descrição..." onkeyup="aplicarFiltros()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary">Condição</label>
+                        <select id="filtroCondicao" class="form-select" onchange="aplicarFiltros()">
+                            <option value="">Todas</option>
+                            <option value="Novo">Novo</option>
+                            <option value="Bom">Bom</option>
+                            <option value="Usado">Usado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary">Status</label>
+                        <select id="filtroStatus" class="form-select" onchange="aplicarFiltros()">
+                            <option value="">Todos</option>
+                            <option value="Disponível">Disponível</option>
+                            <option value="Emprestado">Emprestado</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nome / Descrição</th>
+                            <th>Localização</th>
+                            <th>Condição</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaEquipamentos"></tbody>
+                </table>
+                <div id="msgAcervoVazio" class="text-center p-5 text-muted" style="display:none;">
+                    Nenhum equipamento encontrado.
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalAprovacao" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Aprovar Solicitação e Gerar Empréstimo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-light border">
+            <strong>Plano:</strong> <span id="aprovacaoTitulo">...</span><br>
+            <small class="text-muted">A aprovação criará automaticamente um registro de empréstimo.</small>
+          </div>
+          
+          <input type="hidden" id="aprovacaoIdPlano">
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Selecione o Equipamento a emprestar:</label>
+            <select id="selectEquipamento" class="form-select" required>
+                <option value="">Carregando estoque...</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Confirme o ID da Escola:</label>
+            <input type="number" id="inputIdEscola" class="form-control" placeholder="Ex: 1">
+            <div class="form-text">Necessário para vincular o empréstimo à escola correta.</div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success fw-bold" onclick="confirmarAprovacao()">Confirmar Aprovação</button>
         </div>
       </div>
     </div>
@@ -60,14 +202,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    // --- 1. SETUP ---
     const matricula = sessionStorage.getItem("maker_matricula");
-    const nome = sessionStorage.getItem("maker_nome") || "Usuário"; // Pega o nome!
+    const nome = sessionStorage.getItem("maker_nome") || "Admin";
     const perfil = sessionStorage.getItem("maker_perfil");
 
     if (!matricula || perfil !== "ADMINISTRADOR") {
         window.location.href = "login_administrador.html";
     } else {
-        // PREENCHE A SAUDAÇÃO
         document.getElementById("saudacaoNome").innerText = `Olá, ${nome}!`;
         document.getElementById("saudacaoInfo").innerText = `Admin - Matrícula: ${matricula}`;
     }
@@ -79,59 +221,225 @@
 
     const API_URL = `http://localhost:8000/requisicao`;
 
+    // --- 2. LÓGICA DE SOLICITAÇÕES ---
     async function carregarSolicitacoes() {
-        const tbody = document.getElementById("tabelaSolicitacoes");
+        const tbodyPendentes = document.getElementById("tabelaSolicitacoes");
+        const tbodyHistorico = document.getElementById("tabelaHistorico");
         const msgVazio = document.getElementById("msgVazio");
+        const msgHistVazio = document.getElementById("msgHistVazio");
         const contador = document.getElementById("numPendentes");
 
         try {
-            const response = await fetch(`${API_URL}/planos-de-aula/administrador/${matricula}`);
-            if (!response.ok) throw new Error("Erro API");
-            
-            const planos = await response.json();
-            
-            tbody.innerHTML = "";
-            contador.innerText = planos.length;
+            // Tenta rota específica, com fallback para rota geral
+            let response = await fetch(`${API_URL}/planos-de-aula/administrador/${matricula}`);
+            let planos = [];
 
-            if (planos.length === 0) {
-                msgVazio.style.display = "block";
+            if (!response.ok) {
+                console.warn("Usando fallback de planos...");
+                const respFallback = await fetch(`${API_URL}/planos-de-aula`);
+                if (respFallback.ok) planos = await respFallback.json();
             } else {
-                msgVazio.style.display = "none";
-                planos.forEach(plano => {
-                    const linha = `
-                        <tr>
-                            <td class="ps-4">
-                                <strong class="text-primary">Prof. ${plano.nome_professor}</strong> 
-                                <span class="text-muted small">(Matrícula: ${plano.id_professor})</span><br>
-                                <span class="fw-bold text-dark">${plano.titulo}</span><br>
-                                <small class="text-muted">${plano.descricao}</small>
-                            </td>
-                            <td><span class="badge bg-info text-dark">${plano.status}</span></td>
-                            <td class="text-end pe-4">
-                                <button class="btn btn-sm btn-success me-1" onclick="avaliar(${plano.id}, 'APROVADO')">Aprovar</button>
-                                <button class="btn btn-sm btn-danger" onclick="avaliar(${plano.id}, 'REJEITADO')">Recusar</button>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += linha;
-                });
+                planos = await response.json();
             }
+            
+            tbodyPendentes.innerHTML = "";
+            tbodyHistorico.innerHTML = "";
+            let countPendentes = 0;
+            let countHistorico = 0;
+
+            planos.forEach(plano => {
+                if (plano.status === 'APROVADO') return;
+
+                const nomeProf = plano.nome_professor ? `Prof. ${plano.nome_professor}` : `Matrícula: ${plano.id_professor}`;
+
+                const htmlDetalhes = `
+                    <td class="ps-4">
+                        <strong class="text-primary">${nomeProf}</strong> 
+                        <br>
+                        <span class="fw-bold text-dark">${plano.titulo}</span><br>
+                        <small class="text-muted">${plano.descricao}</small>
+                    </td>
+                `;
+
+                if (plano.status === 'REJEITADO') {
+                    countHistorico++;
+                    tbodyHistorico.innerHTML += `<tr>${htmlDetalhes}<td class="text-center"><span class="badge bg-danger">REJEITADO</span></td></tr>`;
+                } else if (plano.status === 'ENVIADO' || plano.status === 'EM ANÁLISE') {
+                    countPendentes++;
+                    const btnAprovar = `<button class="btn btn-sm btn-success me-1" onclick="abrirModalAprovacao(${plano.id}, '${plano.titulo}')">Aprovar</button>`;
+                    const btnRecusar = `<button class="btn btn-sm btn-danger" onclick="recusarPlano(${plano.id})">Recusar</button>`;
+                    
+                    tbodyPendentes.innerHTML += `
+                        <tr>
+                            ${htmlDetalhes}
+                            <td class="text-center"><span class="badge bg-info text-dark">${plano.status}</span></td>
+                            <td class="text-end pe-4">${btnAprovar}${btnRecusar}</td>
+                        </tr>`;
+                }
+            });
+
+            contador.innerText = countPendentes;
+            msgVazio.style.display = countPendentes === 0 ? "block" : "none";
+            msgHistVazio.style.display = countHistorico === 0 ? "block" : "none";
+
         } catch (erro) { console.error(erro); }
     }
 
-    async function avaliar(id, novoStatus) {
-        if(!confirm(`Confirmar status: ${novoStatus}?`)) return;
+    // --- NOVA LÓGICA DE APROVAÇÃO (CRIAÇÃO DE EMPRÉSTIMO) ---
+    
+    async function abrirModalAprovacao(idPlano, titulo) {
+        document.getElementById("aprovacaoIdPlano").value = idPlano;
+        document.getElementById("aprovacaoTitulo").innerText = titulo;
+        document.getElementById("inputIdEscola").value = ""; // Limpa campo escola
+
+        // Carrega equipamentos disponíveis para o select
+        const select = document.getElementById("selectEquipamento");
+        select.innerHTML = '<option value="">Carregando...</option>';
+        
+        try {
+            const resp = await fetch(`${API_URL}/equipamentos`);
+            if(resp.ok) {
+                const equipamentos = await resp.json();
+                select.innerHTML = '<option value="">Selecione um equipamento...</option>';
+                equipamentos.forEach(eq => {
+                    // Só mostra equipamentos disponíveis
+                    if (eq.status === 'Disponível' || eq.status === 'Novo' || eq.status === 'Bom') {
+                        select.innerHTML += `<option value="${eq.id}">${eq.nome} (ID: ${eq.id})</option>`;
+                    }
+                });
+            } else {
+                select.innerHTML = '<option value="">Erro ao carregar equipamentos</option>';
+            }
+        } catch(e) { select.innerHTML = '<option value="">Erro de conexão</option>'; }
+
+        new bootstrap.Modal(document.getElementById('modalAprovacao')).show();
+    }
+
+    async function confirmarAprovacao() {
+        const idPlano = document.getElementById("aprovacaoIdPlano").value;
+        const idEquipamento = document.getElementById("selectEquipamento").value;
+        const idEscola = document.getElementById("inputIdEscola").value;
+
+        if (!idEquipamento || !idEscola) {
+            alert("Por favor, selecione o equipamento e informe o ID da escola.");
+            return;
+        }
+
+        // 1. CRIA O EMPRÉSTIMO
+        const emprestimoPayload = {
+            id_escola: parseInt(idEscola),
+            id_equipamento: parseInt(idEquipamento),
+            id_plano_aula: parseInt(idPlano),
+            data_hora: new Date().toISOString() // Data atual
+        };
+
+        try {
+            const respEmp = await fetch(`${API_URL}/emprestimos`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(emprestimoPayload)
+            });
+
+            if (!respEmp.ok) {
+                const err = await respEmp.json();
+                alert("Erro ao criar empréstimo: " + (err.detail || "Verifique o ID da escola"));
+                return;
+            }
+
+            // 2. SE SUCESSO, ATUALIZA O STATUS DO PLANO PARA APROVADO
+            const respPlan = await fetch(`${API_URL}/planos-de-aula/${idPlano}/avaliacao`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: 'APROVADO' })
+            });
+
+            if (respPlan.ok) {
+                alert("Sucesso! Empréstimo registrado e plano aprovado.");
+                bootstrap.Modal.getInstance(document.getElementById('modalAprovacao')).hide();
+                carregarSolicitacoes();
+                carregarAcervo(); // Atualiza estoque (se o backend mudar status do eq)
+            } else {
+                alert("Empréstimo criado, mas erro ao atualizar status do plano.");
+            }
+
+        } catch (erro) {
+            console.error(erro);
+            alert("Erro de conexão.");
+        }
+    }
+
+    async function recusarPlano(id) {
+        if(!confirm("Confirmar reprovação do plano?")) return;
         try {
             await fetch(`${API_URL}/planos-de-aula/${id}/avaliacao`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: novoStatus })
+                body: JSON.stringify({ status: 'REJEITADO' })
             });
             carregarSolicitacoes();
         } catch (erro) { alert("Erro de conexão"); }
     }
 
+    // --- 3. LÓGICA DE ACERVO ---
+    let listaGlobalEquipamentos = []; 
+
+    async function carregarAcervo() {
+        try {
+            const response = await fetch(`${API_URL}/equipamentos`);
+            if(!response.ok) return;
+            const dados = await response.json();
+            if (dados.mensagem && !Array.isArray(dados)) return;
+            listaGlobalEquipamentos = dados;
+            aplicarFiltros(); 
+        } catch (erro) { console.warn("Backend offline."); }
+    }
+
+    function aplicarFiltros() {
+        const tbody = document.getElementById("tabelaEquipamentos");
+        const msg = document.getElementById("msgAcervoVazio");
+        const texto = document.getElementById("filtroTexto").value.toLowerCase();
+        const condicao = document.getElementById("filtroCondicao").value;
+        const status = document.getElementById("filtroStatus").value;
+
+        const listaFiltrada = listaGlobalEquipamentos.filter(item => {
+            const matchTexto = (item.nome || "").toLowerCase().includes(texto) || 
+                               (item.descricao || "").toLowerCase().includes(texto);
+            const matchCondicao = condicao === "" || item.condicao === condicao;
+            const matchStatus = status === "" || item.status === status;
+            return matchTexto && matchCondicao && matchStatus;
+        });
+
+        tbody.innerHTML = "";
+        
+        if (listaFiltrada.length === 0) {
+            msg.style.display = "block";
+        } else {
+            msg.style.display = "none";
+            listaFiltrada.forEach(item => {
+                let badgeClass = "bg-light text-dark border";
+                if(item.status === 'Disponível') badgeClass = "bg-success text-white";
+                if(item.status === 'Emprestado') badgeClass = "bg-warning text-dark";
+
+                const linha = `
+                    <tr>
+                        <td class="ps-4 text-muted small">#${item.id}</td>
+                        <td>
+                            <strong>${item.nome}</strong><br>
+                            <small class="text-muted">${item.descricao || '-'}</small>
+                        </td>
+                        <td>${item.localizacao || '-'}</td>
+                        <td>${item.condicao || '-'}</td>
+                        <td><span class="badge ${badgeClass}">${item.status}</span></td>
+                    </tr>
+                `;
+                tbody.innerHTML += linha;
+            });
+        }
+    }
+
     carregarSolicitacoes();
+    carregarAcervo();
+
   </script>
 </body>
 </html>

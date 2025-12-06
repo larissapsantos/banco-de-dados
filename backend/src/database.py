@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root@localhost:3306/projetoBD"
+DATABASE_URL = "mysql+pymysql://root:bE9b-zavq1116@localhost:3306/projetoBD"
 
 # Gerencia a conexão com o BD
 engine = create_engine(DATABASE_URL, echo=True)
